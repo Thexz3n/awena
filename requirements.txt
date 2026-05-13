@@ -1,0 +1,13 @@
+transformers
+datasets
+librosa
+evaluate
+jiwer
+accelerate
+bitsandbytes
+peft
+soundfile
+torchcodec
+torchvision
+torchaudio
+https://download.pytorch.org/whl/cu121

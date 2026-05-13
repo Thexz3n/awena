@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Signslator — Break the Silence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080810;
+  --bg2:#0d0d1a;
+  --bg3:#111122;
+  --surface:#13131f;
+  --surface2:#1a1a28;
+  --card:#16162200;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.12);
+  --v:#7c6ff7;
+  --v2:#9e94fa;
+  --teal:#4ecdc4;
+  --pink:#ff6b9d;
+  --amber:#ffb347;
+  --white:#f4f2ff;
+  --muted:#8585a0;
+  --faint:#4a4a62;
+}
+html{scroll-behavior:smooth;font-size:16px;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--white);
+  overflow-x:hidden;
+  line-height:1.6;
+}
+img{display:block;max-width:100%;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:inherit;}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--v);border-radius:2px;}
+
+/* ─── Noise overlay ────────────────────────────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity:0.025;
+  pointer-events:none;
+  z-index:999;
+}
+
+/* ─── Typography ───────────────────────────────────────────────────────────── */
+.display{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  line-height:1.0;
+  letter-spacing:-0.03em;
+}
+.syne{font-family:'Syne',sans-serif;}
+
+/* ─── Utility ──────────────────────────────────────────────────────────────── */
+.grad-text{
+  background:linear-gradient(135deg,var(--v) 0%,var(--teal) 60%,var(--v2) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.grad-pink{
+  background:linear-gradient(135deg,var(--pink),var(--v));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.container{max-width:1200px;margin:0 auto;padding:0 40px;}
+.tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:6px 14px;border-radius:20px;
+  border:1px solid rgba(124,111,247,0.35);
+  background:rgba(124,111,247,0.1);
+  color:var(--v2);
+}
+.tag-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+
+/* ─── Glow effects ─────────────────────────────────────────────────────────── */
+.glow-v{box-shadow:0 0 80px rgba(124,111,247,0.2);}
+.glow-teal{box-shadow:0 0 60px rgba(78,205,196,0.15);}
+
+/* ─── Animations ───────────────────────────────────────────────────────────── */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes float2{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@keyframes rotate-slow{to{transform:rotate(360deg)}}
+@keyframes fade-up{
+  from{opacity:0;transform:translateY(32px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes scan{
+  0%{top:10%;opacity:0}
+  10%{opacity:1}
+  90%{opacity:1}
+  100%{top:88%;opacity:0}
+}
+@keyframes pulse-ring{
+  0%{transform:scale(1);opacity:0.6}
+  100%{transform:scale(2.2);opacity:0}
+}
+@keyframes type-cursor{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes slide-in-left{
+  from{opacity:0;transform:translateX(-40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes slide-in-right{
+  from{opacity:0;transform:translateX(40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes counter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.reveal{opacity:0;transform:translateY(36px);transition:opacity 0.7s cubic-bezier(.22,1,.36,1),transform 0.7s cubic-bezier(.22,1,.36,1);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-left{opacity:0;transform:translateX(-36px);transition:opacity 0.7s cubic-bezier(.22,1,.36,1),transform 0.7s cubic-bezier(.22,1,.36,1);}
+.reveal-left.visible{opacity:1;transform:translateX(0);}
+.reveal-right{opacity:0;transform:translateX(36px);transition:opacity 0.7s cubic-bezier(.22,1,.36,1),transform 0.7s cubic-bezier(.22,1,.36,1);}
+.reveal-right.visible{opacity:1;transform:translateX(0);}
+
+/* ─── NAV ──────────────────────────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:18px 0;
+  transition:background 0.4s,border-color 0.4s;
+}
+nav.scrolled{
+  background:rgba(8,8,16,0.88);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  display:flex;align-items:center;gap:48px;
+  max-width:1200px;margin:0 auto;padding:0 40px;
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;
+  font-size:22px;font-weight:800;
+  letter-spacing:-0.5px;
+}
+.nav-logo span{
+  background:linear-gradient(90deg,var(--v),var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.nav-links{display:flex;gap:36px;margin-left:auto;align-items:center;}
+.nav-links a{
+  font-size:13px;font-weight:500;color:var(--muted);
+  transition:color 0.2s;position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;
+  background:var(--v);transform:scaleX(0);transition:transform 0.3s;
+}
+.nav-links a:hover{color:var(--white);}
+.nav-links a:hover::after{transform:scaleX(1);}
+.nav-cta{
+  background:linear-gradient(135deg,var(--v),var(--teal));
+  border:none;border-radius:24px;
+  padding:10px 24px;
+  font-size:13px;font-weight:600;
+  color:white;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(124,111,247,0.4);}
+.nav-toggle{display:none;background:none;border:none;color:var(--white);font-size:22px;}
+
+/* ─── HERO ─────────────────────────────────────────────────────────────────── */
+#hero{
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding-top:80px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(124,111,247,0.12) 0%,transparent 70%),
+             radial-gradient(ellipse 40% 40% at 80% 70%,rgba(78,205,196,0.07) 0%,transparent 60%);
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 40%,black 0%,transparent 70%);
+}
+
+.hero-inner{
+  max-width:1200px;margin:0 auto;padding:0 40px;
+  display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;gap:80px;
+  width:100%;
+}
+
+.hero-eyebrow{
+  margin-bottom:24px;
+  animation:fade-up 0.6s cubic-bezier(.22,1,.36,1) both;
+}
+.hero-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(48px,5.5vw,82px);
+  font-weight:800;
+  line-height:1.0;
+  letter-spacing:-0.03em;
+  margin-bottom:24px;
+  animation:fade-up 0.6s 0.1s cubic-bezier(.22,1,.36,1) both;
+}
+.hero-title .line2{display:block;color:var(--muted);font-size:0.85em;}
+.hero-desc{
+  font-size:17px;color:var(--muted);line-height:1.8;
+  max-width:460px;margin-bottom:40px;
+  animation:fade-up 0.6s 0.2s cubic-bezier(.22,1,.36,1) both;
+}
+.hero-actions{
+  display:flex;gap:14px;flex-wrap:wrap;
+  animation:fade-up 0.6s 0.3s cubic-bezier(.22,1,.36,1) both;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  border-radius:30px;padding:14px 30px;
+  font-size:14px;font-weight:600;
+  transition:all 0.25s;
+  border:none;
+}
+.btn-grad{
+  background:linear-gradient(135deg,var(--v),var(--teal));
+  color:white;
+}
+.btn-grad:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(124,111,247,0.4);}
+.btn-ghost{
+  background:transparent;
+  border:1.5px solid var(--border2);
+  color:var(--white);
+}
+.btn-ghost:hover{background:rgba(255,255,255,0.05);border-color:var(--v);}
+
+.hero-stats{
+  display:flex;gap:40px;margin-top:56px;padding-top:40px;
+  border-top:1px solid var(--border);
+  animation:fade-up 0.6s 0.4s cubic-bezier(.22,1,.36,1) both;
+}
+.hstat-num{
+  font-family:'Syne',sans-serif;
+  font-size:28px;font-weight:800;
+  background:linear-gradient(135deg,var(--v),var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hstat-lbl{font-size:12px;color:var(--faint);margin-top:4px;font-weight:500;}
+
+/* ─── Phone mockup ─────────────────────────────────────────────────────────── */
+.phone-scene{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  animation:fade-up 0.7s 0.2s cubic-bezier(.22,1,.36,1) both;
+}
+.phone-wrap{
+  position:relative;
+  animation:float 5s ease-in-out infinite;
+}
+.phone{
+  width:260px;
+  background:#09090f;
+  border-radius:44px;
+  border:1.5px solid rgba(124,111,247,0.3);
+  overflow:hidden;
+  box-shadow:0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05),inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.phone-notch{
+  height:28px;background:#06060d;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:0 80px;
+}
+.notch-cam{width:10px;height:10px;border-radius:50%;background:#111122;border:1px solid rgba(124,111,247,0.3);}
+.notch-pill{width:40px;height:5px;background:#111122;border-radius:3px;}
+.phone-body{padding:12px 16px 16px;}
+
+.p-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px;
+}
+.p-logo{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:white;}
+.p-logo em{
+  background:linear-gradient(90deg,var(--v),var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  font-style:normal;
+}
+.p-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--v),var(--pink));
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;color:white;
+}
+.p-cam{
+  background:rgba(124,111,247,0.05);
+  border:1px solid rgba(124,111,247,0.2);
+  border-radius:16px;height:130px;
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:12px;
+}
+.p-scan-line{
+  position:absolute;left:10px;right:10px;height:1.5px;
+  background:linear-gradient(90deg,transparent,var(--v),var(--teal),transparent);
+  border-radius:1px;
+  animation:scan 2.2s ease-in-out infinite;
+}
+.p-cam-corner{position:absolute;width:16px;height:16px;}
+.p-cam-corner svg{width:100%;height:100%;}
+.p-cam-corner.tl{top:10px;left:10px;}
+.p-cam-corner.tr{top:10px;right:10px;transform:scaleX(-1);}
+.p-cam-corner.bl{bottom:10px;left:10px;transform:scaleY(-1);}
+.p-cam-corner.br{bottom:10px;right:10px;transform:scale(-1);}
+.p-cam-icon{
+  width:50px;height:50px;border-radius:50%;
+  background:rgba(124,111,247,0.12);
+  border:1px solid rgba(124,111,247,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+}
+.p-trans{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;padding:12px 14px;margin-bottom:12px;
+}
+.p-live{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.p-live-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 1.2s infinite;}
+.p-live-lbl{font-size:9px;color:var(--faint);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.p-trans-text{
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:600;
+  color:white;line-height:1.5;
+}
+.p-trans-cursor{
+  display:inline-block;width:2px;height:14px;
+  background:var(--v);margin-left:1px;vertical-align:bottom;
+  animation:type-cursor 0.8s step-end infinite;
+}
+.p-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.p-card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:10px;
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;transition:border-color 0.2s;
+}
+.p-card:hover{border-color:rgba(124,111,247,0.3);}
+.p-card-ico{font-size:16px;line-height:1;}
+.p-card-name{font-size:9px;font-weight:700;color:white;font-family:'Syne',sans-serif;}
+.p-card-sub{font-size:8px;color:var(--faint);}
+
+/* Float chips */
+.float-chip{
+  position:absolute;
+  background:rgba(22,22,34,0.9);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px;
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.chip1{top:-20px;right:-50px;animation:float2 4s ease-in-out infinite;}
+.chip2{bottom:20px;left:-60px;animation:float2 4s ease-in-out 2s infinite;}
+.chip-ico-wrap{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.chip-label{font-size:12px;font-weight:700;color:white;font-family:'Syne',sans-serif;}
+.chip-sub{font-size:10px;color:var(--muted);}
+
+/* ─── MARQUEE ──────────────────────────────────────────────────────────────── */
+.marquee-wrap{
+  padding:28px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  overflow:hidden;
+  background:rgba(124,111,247,0.03);
+}
+.marquee-track{
+  display:flex;gap:0;
+  animation:marquee 20s linear infinite;
+  width:max-content;
+}
+.marquee-track:hover{animation-play-state:paused;}
+@keyframes marquee{to{transform:translateX(-50%)}}
+.marquee-item{
+  display:flex;align-items:center;gap:12px;
+  padding:0 40px;
+  font-size:13px;font-weight:600;color:var(--faint);
+  white-space:nowrap;
+}
+.marquee-item svg{width:16px;height:16px;fill:var(--v);opacity:0.6;}
+.marquee-sep{color:var(--v);opacity:0.4;font-size:20px;}
+
+/* ─── SECTION SHARED ───────────────────────────────────────────────────────── */
+section{padding:120px 0;}
+.section-eyebrow{margin-bottom:20px;}
+.section-title{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(36px,4vw,58px);
+  font-weight:800;
+  line-height:1.05;
+  letter-spacing:-0.03em;
+  margin-bottom:20px;
+}
+.section-sub{font-size:17px;color:var(--muted);line-height:1.8;max-width:540px;}
+
+/* ─── FEATURES ─────────────────────────────────────────────────────────────── */
+#features{background:var(--bg2);}
+.features-header{margin-bottom:72px;}
+.features-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:2px;
+  border:2px solid var(--border);
+  border-radius:28px;
+  overflow:hidden;
+}
+.feat-card{
+  background:var(--surface);
+  padding:40px 36px;
+  position:relative;
+  overflow:hidden;
+  transition:background 0.3s;
+}
+.feat-card:hover{background:var(--surface2);}
+.feat-card::before{
+  content:'';
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 100%,rgba(124,111,247,0.06),transparent 60%);
+  opacity:0;transition:opacity 0.3s;
+}
+.feat-card:hover::before{opacity:1;}
+.feat-num{
+  font-family:'Syne',sans-serif;
+  font-size:11px;font-weight:700;
+  color:var(--faint);letter-spacing:2px;
+  margin-bottom:24px;
+}
+.feat-icon{
+  width:56px;height:56px;border-radius:18px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:24px;
+  position:relative;
+}
+.feat-icon svg{width:26px;height:26px;}
+.feat-title{
+  font-family:'Syne',sans-serif;
+  font-size:18px;font-weight:700;
+  color:white;margin-bottom:10px;
+}
+.feat-desc{font-size:14px;color:var(--muted);line-height:1.7;}
+.feat-link{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:600;color:var(--v2);
+  margin-top:20px;opacity:0;transition:opacity 0.2s;
+}
+.feat-card:hover .feat-link{opacity:1;}
+.feat-link svg{width:14px;height:14px;transition:transform 0.2s;}
+.feat-link:hover svg{transform:translateX(4px);}
+
+/* ─── HOW IT WORKS ─────────────────────────────────────────────────────────── */
+#how{
+  background:var(--bg);
+  position:relative;overflow:hidden;
+}
+#how::before{
+  content:'';
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:800px;height:400px;
+  background:radial-gradient(ellipse,rgba(124,111,247,0.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.how-header{text-align:center;margin-bottom:80px;}
+.how-header .section-sub{margin:0 auto;}
+.steps-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+  position:relative;
+}
+.steps-row::before{
+  content:'';
+  position:absolute;
+  top:44px;left:12.5%;right:12.5%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--v),var(--teal),var(--v),transparent);
+}
+.step{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:0 20px;
+  position:relative;z-index:1;
+}
+.step-num{
+  width:88px;height:88px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;
+  font-size:24px;font-weight:800;
+  margin-bottom:28px;
+  position:relative;
+  border:2px solid;
+}
+.step-num::before{
+  content:'';
+  position:absolute;inset:-8px;
+  border-radius:50%;
+  border:1px solid;
+  opacity:0.3;
+  animation:pulse-ring 3s ease-out infinite;
+}
+.step:nth-child(1) .step-num{background:rgba(124,111,247,0.1);border-color:rgba(124,111,247,0.4);color:var(--v);}
+.step:nth-child(1) .step-num::before{border-color:var(--v);}
+.step:nth-child(2) .step-num{background:rgba(78,205,196,0.1);border-color:rgba(78,205,196,0.4);color:var(--teal);}
+.step:nth-child(2) .step-num::before{border-color:var(--teal);animation-delay:0.5s;}
+.step:nth-child(3) .step-num{background:rgba(255,107,157,0.1);border-color:rgba(255,107,157,0.4);color:var(--pink);}
+.step:nth-child(3) .step-num::before{border-color:var(--pink);animation-delay:1s;}
+.step:nth-child(4) .step-num{background:rgba(255,179,71,0.1);border-color:rgba(255,179,71,0.4);color:var(--amber);}
+.step:nth-child(4) .step-num::before{border-color:var(--amber);animation-delay:1.5s;}
+.step-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white;margin-bottom:10px;}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.7;}
+
+/* ─── DEMO SECTION ─────────────────────────────────────────────────────────── */
+#demo{background:var(--bg2);}
+.demo-header{margin-bottom:64px;}
+.demo-stage{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:28px;
+  overflow:hidden;
+}
+.demo-topbar{
+  background:var(--surface);
+  padding:16px 28px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.demo-dot{width:12px;height:12px;border-radius:50%;}
+.demo-title-bar{
+  flex:1;text-align:center;
+  font-size:12px;color:var(--faint);font-weight:500;
+  font-family:'DM Sans',sans-serif;
+}
+.demo-body{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:stretch;
+  min-height:340px;
+}
+.demo-panel{padding:36px 40px;}
+.demo-panel-label{
+  font-size:10px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--faint);margin-bottom:20px;
+}
+.demo-user-name{
+  font-family:'Syne',sans-serif;
+  font-size:20px;font-weight:800;
+  color:white;margin-bottom:6px;
+}
+.demo-user-role{font-size:12px;color:var(--muted);margin-bottom:24px;}
+.demo-badge{
+  display:inline-block;
+  padding:4px 12px;border-radius:20px;
+  font-size:10px;font-weight:700;
+  margin-bottom:24px;
+}
+.demo-input-block{
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border);
+  border-radius:14px;padding:16px 18px;
+  margin-bottom:12px;
+}
+.demo-input-lbl{font-size:10px;color:var(--faint);margin-bottom:8px;font-weight:500;}
+.demo-input-val{font-size:15px;color:white;font-weight:500;line-height:1.5;}
+.demo-sign-display{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;
+}
+.demo-sign-emoji{font-size:56px;display:block;text-align:center;line-height:1;margin-bottom:10px;animation:float 3s ease-in-out infinite;}
+.demo-sign-word{font-size:13px;color:var(--muted);text-align:center;}
+.demo-divider{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;
+  border-left:1px solid var(--border);
+  border-right:1px solid var(--border);
+  gap:12px;
+}
+.demo-arrow-circle{
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,var(--v),var(--teal));
+  display:flex;align-items:center;justify-content:center;
+}
+.demo-arrow-circle svg{width:22px;height:22px;fill:white;}
+.demo-arrow-lbl{font-size:10px;color:var(--faint);letter-spacing:0.5px;text-align:center;}
+.demo-controls{
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:20px 28px;
+  display:flex;align-items:center;gap:14px;
+}
+.demo-ctrl-btn{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:20px;padding:8px 18px;
+  font-size:12px;font-weight:600;color:var(--muted);
+  transition:all 0.2s;
+}
+.demo-ctrl-btn:hover{border-color:var(--v);color:var(--white);}
+.demo-ctrl-btn svg{width:14px;height:14px;fill:currentColor;}
+.demo-cycle-btn{
+  margin-left:auto;
+  background:linear-gradient(135deg,var(--v),var(--teal));
+  border:none;border-radius:20px;padding:8px 22px;
+  font-size:12px;font-weight:600;color:white;
+  transition:transform 0.2s,box-shadow 0.2s;
+}
+.demo-cycle-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,111,247,0.3);}
+
+/* ─── ACCESSIBILITY ────────────────────────────────────────────────────────── */
+#accessibility{background:var(--bg);}
+.a11y-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:32px;
+  align-items:start;
+}
+.a11y-content .section-sub{margin-bottom:48px;}
+.a11y-list{display:flex;flex-direction:column;gap:20px;}
+.a11y-item{
+  display:flex;align-items:flex-start;gap:18px;
+  padding:24px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  transition:border-color 0.3s,transform 0.3s;
+}
+.a11y-item:hover{border-color:rgba(124,111,247,0.3);transform:translateX(6px);}
+.a11y-icon{
+  width:44px;height:44px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.a11y-icon svg{width:20px;height:20px;}
+.a11y-item-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:white;margin-bottom:4px;}
+.a11y-item-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+.a11y-visual{
+  position:sticky;top:100px;
+}
+.a11y-screen{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  overflow:hidden;
+}
+.a11y-screen-top{
+  background:var(--bg3);padding:16px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.a11y-bar{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+.a11y-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--v),var(--teal));}
+.a11y-screen-body{padding:24px;}
+.contrast-demo{
+  display:flex;gap:12px;margin-bottom:20px;
+}
+.contrast-chip{
+  flex:1;padding:12px;border-radius:12px;
+  text-align:center;font-size:12px;font-weight:700;
+  font-family:'Syne',sans-serif;
+}
+.caption-demo{
+  background:rgba(0,0,0,0.4);
+  border-radius:12px;padding:12px 16px;
+  font-size:13px;line-height:1.6;
+  border-left:3px solid var(--teal);
+  margin-bottom:16px;
+}
+.caption-text{color:var(--white);}
+.focus-demo{
+  border:2px solid var(--v);
+  border-radius:10px;padding:10px 14px;
+  font-size:13px;color:var(--white);
+  display:flex;align-items:center;gap:10px;
+}
+.focus-icon{font-size:18px;}
+
+/* ─── TESTIMONIALS ─────────────────────────────────────────────────────────── */
+#testimonials{background:var(--bg2);}
+.test-header{margin-bottom:72px;}
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.test-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:32px;
+  transition:transform 0.3s,border-color 0.3s;
+}
+.test-card:hover{transform:translateY(-4px);border-color:rgba(124,111,247,0.25);}
+.test-stars{
+  display:flex;gap:3px;margin-bottom:20px;
+}
+.test-stars span{
+  width:16px;height:16px;
+  background:linear-gradient(135deg,#ffd700,#ffb347);
+  -webkit-clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+}
+.test-quote{font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:24px;font-style:italic;}
+.test-user{display:flex;align-items:center;gap:14px;}
+.test-avatar{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:white;
+  font-family:'Syne',sans-serif;flex-shrink:0;
+}
+.test-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:white;}
+.test-role{font-size:12px;color:var(--faint);}
+
+/* ─── CTA SECTION ──────────────────────────────────────────────────────────── */
+#cta{
+  padding:80px 0 120px;
+  background:var(--bg);
+}
+.cta-inner{
+  max-width:900px;margin:0 auto;
+  text-align:center;
+  background:linear-gradient(135deg,rgba(124,111,247,0.1),rgba(78,205,196,0.06));
+  border:1px solid rgba(124,111,247,0.2);
+  border-radius:40px;
+  padding:80px;
+  position:relative;
+  overflow:hidden;
+}
+.cta-inner::before{
+  content:'';
+  position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:400px;height:200px;
+  background:radial-gradient(ellipse,rgba(124,111,247,0.15),transparent 70%);
+}
+.cta-inner .section-title{margin-bottom:20px;}
+.cta-inner .section-sub{margin:0 auto 48px;color:var(--muted);}
+.cta-buttons{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;}
+.app-btn{
+  display:flex;align-items:center;gap:12px;
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border2);
+  border-radius:16px;padding:14px 24px;
+  transition:all 0.25s;
+}
+.app-btn:hover{background:rgba(255,255,255,0.1);border-color:var(--v);transform:translateY(-2px);}
+.app-btn-icon{font-size:28px;}
+.app-btn-text{}
+.app-btn-sub{font-size:10px;color:var(--faint);}
+.app-btn-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:white;}
+
+/* ─── FOOTER ───────────────────────────────────────────────────────────────── */
+footer{
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  padding:64px 0 40px;
+}
+.footer-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:60px;margin-bottom:60px;
+}
+.footer-brand{}
+.footer-logo{
+  font-family:'Syne',sans-serif;
+  font-size:22px;font-weight:800;
+  margin-bottom:16px;
+}
+.footer-logo em{
+  background:linear-gradient(90deg,var(--v),var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  font-style:normal;
+}
+.footer-tagline{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:24px;max-width:280px;}
+.footer-socials{display:flex;gap:10px;}
+.social-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:all 0.2s;
+}
+.social-btn:hover{background:var(--surface2);border-color:var(--v);}
+.footer-col-title{
+  font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;
+  color:white;letter-spacing:0.5px;
+  margin-bottom:20px;
+}
+.footer-links{display:flex;flex-direction:column;gap:12px;}
+.footer-links a{font-size:13px;color:var(--muted);transition:color 0.2s;}
+.footer-links a:hover{color:var(--v2);}
+.footer-bottom{
+  border-top:1px solid var(--border);padding-top:28px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;color:var(--faint);
+}
+.footer-bottom-links{display:flex;gap:24px;}
+.footer-bottom-links a{color:var(--faint);transition:color 0.2s;}
+.footer-bottom-links a:hover{color:var(--v2);}
+
+/* ─── MOBILE ───────────────────────────────────────────────────────────────── */
+@media(max-width:900px){
+  .container{padding:0 24px;}
+  .nav-inner{padding:0 24px;}
+  .nav-links{display:none;}
+  .nav-toggle{display:block;}
+  .hero-inner{grid-template-columns:1fr;gap:60px;}
+  .phone-scene{order:-1;}
+  .chip1,.chip2{display:none;}
+  .features-grid{grid-template-columns:1fr;}
+  .steps-row{grid-template-columns:1fr 1fr;gap:40px;}
+  .steps-row::before{display:none;}
+  .demo-body{grid-template-columns:1fr;grid-template-rows:auto auto auto;}
+  .demo-divider{flex-direction:row;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:16px 28px;}
+  .a11y-grid{grid-template-columns:1fr;}
+  .a11y-visual{position:static;}
+  .test-grid{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:40px;}
+  .cta-inner{padding:48px 32px;}
+  section{padding:80px 0;}
+}
+@media(max-width:600px){
+  .hero-title{font-size:40px;}
+  .steps-row{grid-template-columns:1fr;}
+  .footer-grid{grid-template-columns:1fr;}
+  .hero-stats{gap:24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─────────────────────────────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">Sign<span>slator</span></div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#demo">Demo</a>
+      <a href="#testimonials">Stories</a>
+    </div>
+    <button class="nav-cta" style="margin-left:auto;">Download free</button>
+    <button class="nav-toggle" id="navToggle">☰</button>
+  </div>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+
+    <!-- Left -->
+    <div>
+      <div class="hero-eyebrow"><span class="tag"><span class="tag-dot"></span>Real-time sign language AI</span></div>
+      <h1 class="hero-title">
+        Break the<br>
+        <span class="grad-text">silence</span><br>
+        <span class="line2">barrier.</span>
+      </h1>
+      <p class="hero-desc">Signslator bridges the gap between sign language users and the hearing world — instantly, in every room, every class, every conversation.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-grad">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Get the app
+        </a>
+        <a href="#demo" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Watch demo
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hstat-num">50K+</div>
+          <div class="hstat-lbl">Active users</div>
+        </div>
+        <div>
+          <div class="hstat-num">98.4%</div>
+          <div class="hstat-lbl">Accuracy</div>
+        </div>
+        <div>
+          <div class="hstat-num">&lt;0.3s</div>
+          <div class="hstat-lbl">Translation speed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Phone -->
+    <div class="phone-scene">
+      <div class="phone-wrap">
+
+        <!-- Float chips -->
+        <div class="float-chip chip1">
+          <div class="chip-ico-wrap" style="background:rgba(78,205,196,0.15);">✅</div>
+          <div>
+            <div class="chip-label">Translated</div>
+            <div class="chip-sub">ASL · 0.18s</div>
+          </div>
+        </div>
+        <div class="float-chip chip2">
+          <div class="chip-ico-wrap" style="background:rgba(124,111,247,0.15);">🤟</div>
+          <div>
+            <div class="chip-label">Sign detected</div>
+            <div class="chip-sub">I love you</div>
+          </div>
+        </div>
+
+        <div class="phone">
+          <div class="phone-notch">
+            <div class="notch-cam"></div>
+            <div class="notch-pill"></div>
+          </div>
+          <div class="phone-body">
+            <div class="p-topbar">
+              <div class="p-logo">Sign<em>slator</em></div>
+              <div class="p-avatar">C</div>
+            </div>
+            <div class="p-cam">
+              <div class="p-scan-line"></div>
+              <div class="p-cam-corner tl"><svg viewBox="0 0 16 16" fill="none"><path d="M0 16V2a2 2 0 012-2h14" stroke="#7c6ff7" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+              <div class="p-cam-corner tr"><svg viewBox="0 0 16 16" fill="none"><path d="M0 16V2a2 2 0 012-2h14" stroke="#7c6ff7" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+              <div class="p-cam-corner bl"><svg viewBox="0 0 16 16" fill="none"><path d="M0 16V2a2 2 0 012-2h14" stroke="#7c6ff7" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+              <div class="p-cam-corner br"><svg viewBox="0 0 16 16" fill="none"><path d="M0 16V2a2 2 0 012-2h14" stroke="#7c6ff7" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+              <div class="p-cam-icon">📷</div>
+            </div>
+            <div class="p-trans">
+              <div class="p-live">
+                <div class="p-live-dot"></div>
+                <span class="p-live-lbl">Live translation</span>
+              </div>
+              <div class="p-trans-text">Hello, can you help me?<span class="p-trans-cursor"></span></div>
+            </div>
+            <div class="p-cards">
+              <div class="p-card">
+                <div class="p-card-ico">🤟</div>
+                <div>
+                  <div class="p-card-name">Sign → Text</div>
+                  <div class="p-card-sub">Camera mode</div>
+                </div>
+              </div>
+              <div class="p-card">
+                <div class="p-card-ico">💬</div>
+                <div>
+                  <div class="p-card-name">Text → Sign</div>
+                  <div class="p-card-sub">Type or speak</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── MARQUEE ───────────────────────────────────────────────────────────────── -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marqueeTrack">
+    <!-- items duplicated via JS -->
+  </div>
+</div>
+
+<!-- ─── FEATURES ──────────────────────────────────────────────────────────────── -->
+<section id="features">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="section-eyebrow"><span class="tag">Features</span></div>
+      <h2 class="section-title">Everything you need to<br><span class="grad-text">communicate freely</span></h2>
+      <p class="section-sub">A complete two-way translation toolkit built for classrooms, offices, and everyday life.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal" style="transition-delay:0.05s">
+        <div class="feat-num">01</div>
+        <div class="feat-icon" style="background:rgba(124,111,247,0.12);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7c6ff7" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M2 17l20 0M8 21h8"/></svg>
+        </div>
+        <div class="feat-title">Real-time sign recognition</div>
+        <div class="feat-desc">Point your camera at any ASL gesture and receive instant on-screen text translation — no internet required.</div>
+        <span class="feat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.1s">
+        <div class="feat-num">02</div>
+        <div class="feat-icon" style="background:rgba(78,205,196,0.12);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4ecdc4" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        </div>
+        <div class="feat-title">Text to sign animation</div>
+        <div class="feat-desc">Type or paste any sentence and watch it transform into clear, animated sign language in real-time.</div>
+        <span class="feat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.15s">
+        <div class="feat-num">03</div>
+        <div class="feat-icon" style="background:rgba(255,107,157,0.12);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b9d" stroke-width="1.8"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        </div>
+        <div class="feat-title">Voice to sign</div>
+        <div class="feat-desc">Speak naturally and the app converts speech to sign language animations so Celestine can follow any conversation.</div>
+        <span class="feat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.2s">
+        <div class="feat-num">04</div>
+        <div class="feat-icon" style="background:rgba(255,179,71,0.12);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffb347" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+        </div>
+        <div class="feat-title">Text to speech output</div>
+        <div class="feat-desc">Translated signs are spoken aloud so hearing users can receive the message without looking at the screen.</div>
+        <span class="feat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.25s">
+        <div class="feat-num">05</div>
+        <div class="feat-icon" style="background:rgba(124,111,247,0.12);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#7c6ff7" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="feat-title">Lecture transcription</div>
+        <div class="feat-desc">Automatically captures real-time lecture content as readable text — giving students like Celestine full access to every word.</div>
+        <span class="feat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </div>
+      <div class="feat-card reveal" style="transition-delay:0.3s">
+        <div class="feat-num">06</div>
+        <div class="feat-icon" style="background:rgba(78,205,196,0.12);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4ecdc4" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M8 3.93A9.97 9.97 0 0112 2"/></svg>
+        </div>
+        <div class="feat-title">Offline & fast</div>
+        <div class="feat-desc">On-device AI model requires no internet. Translations happen in under 300ms — even in weak signal areas like labs or fieldwork.</div>
+        <span class="feat-link">Learn more <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── HOW IT WORKS ────────────────────────────────────────────────────────── -->
+<section id="how">
+  <div class="container">
+    <div class="how-header reveal">
+      <div class="section-eyebrow" style="text-align:center;"><span class="tag">How it works</span></div>
+      <h2 class="section-title" style="text-align:center;">Four steps to<br><span class="grad-text">seamless communication</span></h2>
+      <p class="section-sub" style="text-align:center;margin:0 auto;">Whether you sign or speak, Signslator handles the translation so you can focus on the conversation.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step reveal" style="transition-delay:0.05s">
+        <div class="step-num">01</div>
+        <div class="step-title">Open the app</div>
+        <div class="step-desc">Launch Signslator and select your mode — sign recognition, text input, or voice. Setup takes seconds.</div>
+      </div>
+      <div class="step reveal" style="transition-delay:0.1s">
+        <div class="step-num">02</div>
+        <div class="step-title">Input your message</div>
+        <div class="step-desc">Use camera for live sign detection, or type and speak to produce animated sign output for your audience.</div>
+      </div>
+      <div class="step reveal" style="transition-delay:0.15s">
+        <div class="step-num">03</div>
+        <div class="step-title">AI translates instantly</div>
+        <div class="step-desc">Our on-device model processes input in under 300ms with 98.4% accuracy — no lag, no waiting.</div>
+      </div>
+      <div class="step reveal" style="transition-delay:0.2s">
+        <div class="step-num">04</div>
+        <div class="step-title">Share the result</div>
+        <div class="step-desc">Copy, speak aloud, or display the animated sign — the other person understands immediately.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DEMO ──────────────────────────────────────────────────────────────────── -->
+<section id="demo">
+  <div class="container">
+    <div class="demo-header reveal">
+      <div class="section-eyebrow"><span class="tag">Live demo</span></div>
+      <h2 class="section-title">See both directions<br><span class="grad-text">in action</span></h2>
+      <p class="section-sub">Signslator is truly two-way — Celestine signs and the world reads. The world speaks and Celestine sees.</p>
+    </div>
+    <div class="demo-stage reveal" style="transition-delay:0.1s">
+      <div class="demo-topbar">
+        <div class="demo-dot" style="background:#ff5f57;"></div>
+        <div class="demo-dot" style="background:#febc2e;"></div>
+        <div class="demo-dot" style="background:#28c840;"></div>
+        <div class="demo-title-bar">Signslator — Live Translation Demo</div>
+      </div>
+      <div class="demo-body">
+        <!-- Left: Celestine -->
+        <div class="demo-panel">
+          <div class="demo-panel-label">Celestine (user)</div>
+          <div class="demo-user-name">Sign language input</div>
+          <div class="demo-user-role">Deaf university student — Lagos, Nigeria</div>
+          <span class="demo-badge" style="background:rgba(124,111,247,0.15);color:var(--v2);">ASL · Camera mode</span>
+          <div class="demo-input-block">
+            <div class="demo-input-lbl">Detected gesture</div>
+            <div id="demoGesture" style="font-size:40px;text-align:center;padding:10px 0;">🤟</div>
+          </div>
+          <div class="demo-input-block">
+            <div class="demo-input-lbl">Translated text output</div>
+            <div id="demoText" class="demo-input-val">I love you</div>
+          </div>
+        </div>
+        <!-- Divider -->
+        <div class="demo-divider">
+          <div class="demo-arrow-circle">
+            <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          </div>
+          <div class="demo-arrow-lbl">Two-way<br>translation</div>
+        </div>
+        <!-- Right: Audience -->
+        <div class="demo-panel">
+          <div class="demo-panel-label">Audience (non-signer)</div>
+          <div class="demo-user-name">Text / voice input</div>
+          <div class="demo-user-role">Lecturer, friend, or family member</div>
+          <span class="demo-badge" style="background:rgba(78,205,196,0.12);color:var(--teal);">Typed or spoken</span>
+          <div class="demo-input-block">
+            <div class="demo-input-lbl">Audience message</div>
+            <div id="audMsg" class="demo-input-val">Great to see you today!</div>
+          </div>
+          <div class="demo-input-block">
+            <div class="demo-input-lbl">Sign output for Celestine</div>
+            <div class="demo-sign-display">
+              <span id="audSign" class="demo-sign-emoji">👋</span>
+              <span id="audSignWord" class="demo-sign-word">Hello / Greeting</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-controls">
+        <button class="demo-ctrl-btn">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Full screen
+        </button>
+        <button class="demo-ctrl-btn">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Play recording
+        </button>
+        <button class="demo-cycle-btn" id="cycleBtn">Cycle demo phrases →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── ACCESSIBILITY ─────────────────────────────────────────────────────────── -->
+<section id="accessibility">
+  <div class="container">
+    <div class="a11y-grid">
+      <div class="a11y-content">
+        <div class="section-eyebrow reveal"><span class="tag">Accessibility</span></div>
+        <h2 class="section-title reveal">Designed for<br><span class="grad-pink">every ability</span></h2>
+        <p class="section-sub reveal">WCAG-compliant from the ground up. Every interaction, every screen, built to ensure no one is left behind.</p>
+        <div class="a11y-list" style="margin-top:48px;">
+          <div class="a11y-item reveal" style="transition-delay:0.05s">
+            <div class="a11y-icon" style="background:rgba(124,111,247,0.12);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#7c6ff7" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div>
+              <div class="a11y-item-title">Perceivable (WCAG 1.x)</div>
+              <div class="a11y-item-desc">All video content includes captions. Text meets AA contrast ratio. Icons have text alternatives.</div>
+            </div>
+          </div>
+          <div class="a11y-item reveal" style="transition-delay:0.1s">
+            <div class="a11y-icon" style="background:rgba(78,205,196,0.12);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4ecdc4" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+            </div>
+            <div>
+              <div class="a11y-item-title">Operable (WCAG 2.x)</div>
+              <div class="a11y-item-desc">Full keyboard navigation. Visible focus indicators. No time limits on sign input. Large touch targets.</div>
+            </div>
+          </div>
+          <div class="a11y-item reveal" style="transition-delay:0.15s">
+            <div class="a11y-icon" style="background:rgba(255,107,157,0.12);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ff6b9d" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <div>
+              <div class="a11y-item-title">Understandable (WCAG 3.x)</div>
+              <div class="a11y-item-desc">Consistent navigation. Clear error messages. Plain language throughout. Contextual help on every screen.</div>
+            </div>
+          </div>
+          <div class="a11y-item reveal" style="transition-delay:0.2s">
+            <div class="a11y-icon" style="background:rgba(255,179,71,0.12);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ffb347" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div class="a11y-item-title">Robust (WCAG 4.x)</div>
+              <div class="a11y-item-desc">Compatible with all major screen readers and assistive technologies on both iOS and Android.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="a11y-visual reveal-right">
+        <div class="a11y-screen">
+          <div class="a11y-screen-top">
+            <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--muted);">Contrast check</div>
+            <div class="a11y-bar" style="flex:1;margin-left:12px;">
+              <div class="a11y-bar-fill" style="width:94%;"></div>
+            </div>
+            <div style="font-size:10px;font-weight:700;color:var(--teal);margin-left:8px;">AAA</div>
+          </div>
+          <div class="a11y-screen-body">
+            <div class="contrast-demo">
+              <div class="contrast-chip" style="background:var(--v);color:white;">AA ✓<br><span style="font-size:10px;font-weight:400;">7.2:1</span></div>
+              <div class="contrast-chip" style="background:var(--teal);color:#0a1f1e;">AAA ✓<br><span style="font-size:10px;font-weight:400;">9.1:1</span></div>
+              <div class="contrast-chip" style="background:var(--surface2);color:var(--white);">AA ✓<br><span style="font-size:10px;font-weight:400;">8.4:1</span></div>
+            </div>
+            <div class="caption-demo">
+              <span class="caption-text">📍 <strong>Caption:</strong> Celestine signs "Where is the lecture hall?" — Translation displayed in real-time.</span>
+            </div>
+            <div class="focus-demo">
+              <span class="focus-icon">⌨️</span>
+              <span>Keyboard focus indicator visible</span>
+            </div>
+            <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+              <span style="background:rgba(124,111,247,0.1);border:1px solid rgba(124,111,247,0.25);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--v2);">Screen reader ready</span>
+              <span style="background:rgba(78,205,196,0.1);border:1px solid rgba(78,205,196,0.25);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--teal);">VoiceOver ✓</span>
+              <span style="background:rgba(78,205,196,0.1);border:1px solid rgba(78,205,196,0.25);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--teal);">TalkBack ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIALS ──────────────────────────────────────────────────────────── -->
+<section id="testimonials">
+  <div class="container">
+    <div class="test-header reveal">
+      <div class="section-eyebrow"><span class="tag">Stories</span></div>
+      <h2 class="section-title">Changing lives,<br><span class="grad-text">one sign at a time</span></h2>
+    </div>
+    <div class="test-grid">
+      <div class="test-card reveal" style="transition-delay:0.05s">
+        <div class="test-stars"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="test-quote">"For the first time I can ask my professor a question without feeling like a burden. Signslator changed my university experience completely."</div>
+        <div class="test-user">
+          <div class="test-avatar" style="background:linear-gradient(135deg,var(--v),var(--teal));">C</div>
+          <div>
+            <div class="test-name">Celestine A.</div>
+            <div class="test-role">University student, Lagos</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal" style="transition-delay:0.1s">
+        <div class="test-stars"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="test-quote">"I never learned sign language but now I can communicate naturally with my deaf student. It's like having a real-time interpreter in my pocket."</div>
+        <div class="test-user">
+          <div class="test-avatar" style="background:linear-gradient(135deg,var(--pink),var(--v));">Dr</div>
+          <div>
+            <div class="test-name">Dr. Kemi Adebayo</div>
+            <div class="test-role">Lecturer, University of Lagos</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card reveal" style="transition-delay:0.15s">
+        <div class="test-stars"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="test-quote">"My son is deaf and I've been learning sign language for years. Signslator fills the gaps and lets us have longer, richer conversations than ever."</div>
+        <div class="test-user">
+          <div class="test-avatar" style="background:linear-gradient(135deg,var(--teal),#0e3d3a);">MA</div>
+          <div>
+            <div class="test-name">Mrs. Afolabi</div>
+            <div class="test-role">Parent, Abuja</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ───────────────────────────────────────────────────────────────────── -->
+<section id="cta">
+  <div class="container">
+    <div class="cta-inner reveal">
+      <div class="section-eyebrow" style="text-align:center;margin-bottom:24px;"><span class="tag">Download free</span></div>
+      <h2 class="section-title">Ready to break the<br><span class="grad-text">silence barrier?</span></h2>
+      <p class="section-sub" style="text-align:center;">Download Signslator free today. No sign-up required. Start communicating without limits in 30 seconds.</p>
+      <div class="cta-buttons">
+        <a href="#" class="app-btn">
+          <div class="app-btn-icon">🍎</div>
+          <div class="app-btn-text">
+            <div class="app-btn-sub">Download on the</div>
+            <div class="app-btn-name">App Store</div>
+          </div>
+        </a>
+        <a href="#" class="app-btn">
+          <div class="app-btn-icon">🤖</div>
+          <div class="app-btn-text">
+            <div class="app-btn-sub">Get it on</div>
+            <div class="app-btn-name">Google Play</div>
+          </div>
+        </a>
+        <a href="#" class="btn btn-ghost" style="border-radius:16px;">Learn more →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">Sign<em>slator</em></div>
+        <p class="footer-tagline">Breaking communication barriers for the deaf and hard-of-hearing community — one sign at a time.</p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn">𝕏</a>
+          <a href="#" class="social-btn">in</a>
+          <a href="#" class="social-btn">IG</a>
+          <a href="#" class="social-btn">YT</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Product</div>
+        <div class="footer-links">
+          <a href="#">Features</a>
+          <a href="#">How it works</a>
+          <a href="#">Pricing</a>
+          <a href="#">Changelog</a>
+          <a href="#">Roadmap</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <div class="footer-links">
+          <a href="#">Documentation</a>
+          <a href="#">ASL Dictionary</a>
+          <a href="#">Blog</a>
+          <a href="#">Community</a>
+          <a href="#">Support</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <div class="footer-links">
+          <a href="#">About</a>
+          <a href="#">Accessibility</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Signslator · Made with care for the deaf community</span>
+      <div class="footer-bottom-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Accessibility</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── Nav scroll ───────────────────────────────────────────────────────────────
+const nav = document.getElementById('nav');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>40);
+});
+
+// ─── Reveal on scroll ─────────────────────────────────────────────────────────
+const reveals = document.querySelectorAll('.reveal,.reveal-left,.reveal-right');
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}
+  });
+},{threshold:0.12});
+reveals.forEach(el=>io.observe(el));
+
+// ─── Marquee items ────────────────────────────────────────────────────────────
+const mItems = [
+  'Real-time ASL translation','Two-way communication','Voice to sign','Text to sign',
+  'Lecture transcription','98.4% accuracy','Offline-ready AI','WCAG compliant',
+  'iOS & Android','Under 300ms'
+];
+const starSvg = `<svg viewBox="0 0 16 16"><polygon points="8,1 10,6 15,6 11,9 12.5,14 8,11 3.5,14 5,9 1,6 6,6" fill="#7c6ff7"/></svg>`;
+const track = document.getElementById('marqueeTrack');
+const buildItems = ()=>mItems.map(t=>`
+  <div class="marquee-item">${t}${starSvg}</div>
+`).join('<span class="marquee-item marquee-sep">·</span>');
+track.innerHTML = buildItems()+buildItems();
+
+// ─── Demo phrase cycler ───────────────────────────────────────────────────────
+const phrases = [
+  {gest:'🤟',text:'I love you',msg:'See you in class tomorrow!',sign:'👋',word:'Hello / See you'},
+  {gest:'👋',text:'Hello, nice to meet you',msg:'Can you repeat that please?',sign:'🙏',word:'Please / Request'},
+  {gest:'👍',text:'Yes, I agree with that',msg:'Good morning everyone!',sign:'🌅',word:'Good morning'},
+  {gest:'✋',text:'Wait, please stop',msg:'Thank you so much!',sign:'🙏',word:'Thank you'},
+  {gest:'🤙',text:'Call me later tonight',msg:'Where is the lecture hall?',sign:'🔍',word:'Search / Where'},
+  {gest:'🫶',text:'Thank you for your help',msg:'Great work today!',sign:'👏',word:'Applause / Great'},
+];
+let pi=0;
+function cyclePhrases(){
+  pi=(pi+1)%phrases.length;
+  const p=phrases[pi];
+  const g=document.getElementById('demoGesture');
+  const s=document.getElementById('audSign');
+  g.style.transform='scale(0.6)';g.style.opacity='0';
+  s.style.transform='scale(0.6)';s.style.opacity='0';
+  setTimeout(()=>{
+    g.textContent=p.gest;
+    document.getElementById('demoText').textContent=p.text;
+    document.getElementById('audMsg').textContent=p.msg;
+    s.textContent=p.sign;
+    document.getElementById('audSignWord').textContent=p.word;
+    g.style.transform='scale(1.15)';g.style.opacity='1';
+    s.style.transform='scale(1.15)';s.style.opacity='1';
+  },200);
+  setTimeout(()=>{
+    g.style.transform='scale(1)';
+    s.style.transform='scale(1)';
+  },400);
+}
+[document.getElementById('demoGesture'),document.getElementById('audSign')].forEach(el=>{
+  el.style.transition='transform 0.25s cubic-bezier(.34,1.56,.64,1),opacity 0.2s';
+});
+document.getElementById('cycleBtn').addEventListener('click',cyclePhrases);
+setInterval(cyclePhrases,3500);
+
+// ─── Typewriter effect on phone ────────────────────────────────────────────────
+const sentences = [
+  'Hello, can you help me?',
+  'Where is the lecture hall?',
+  'Thank you so much!',
+  'I need to take notes.',
+  'Can you say that again?',
+];
+let si=0,ci=0,deleting=false;
+const transEl = document.querySelector('.p-trans-text');
+function type(){
+  const cur=sentences[si];
+  const content = transEl.innerHTML.replace('<span class="p-trans-cursor"></span>','');
+  if(!deleting){
+    transEl.innerHTML = cur.slice(0,ci+1)+'<span class="p-trans-cursor"></span>';
+    ci++;
+    if(ci>=cur.length){setTimeout(()=>{deleting=true;},2000);setTimeout(type,2100);return;}
+  } else {
+    transEl.innerHTML = cur.slice(0,ci-1)+'<span class="p-trans-cursor"></span>';
+    ci--;
+    if(ci<=0){deleting=false;si=(si+1)%sentences.length;}
+  }
+  setTimeout(type,deleting?40:80);
+}
+setTimeout(type,1000);
+</script>
+</body>
+</html>
