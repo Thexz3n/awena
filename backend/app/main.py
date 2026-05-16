@@ -25,7 +25,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
+import os
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy.exc import SQLAlchemyError
@@ -75,24 +77,60 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # ─── Security Headers (COOP/COEP/Referrer) ──────────────────
+    # Required for Google Sign-In popups to communicate with the app
+    @app.middleware("http")
+    async def add_security_headers(request: Request, call_next):
+        response: Response = await call_next(request)
+        # Relaxed COOP to allow Google Sign-In popups to work correctly on the web.
+        # 'same-origin-allow-popups' is the modern standard, but 'unsafe-none' 
+        # is the most compatible for local development and certain browser configurations.
+        response.headers["Cross-Origin-Opener-Policy"] = "unsafe-none"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # Allow cross-origin resources (like Google scripts)
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        return response
+
     # ─── Routers ────────────────────────────────────────────────
     app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
     app.include_router(users_router, prefix=settings.API_V1_PREFIX)
     app.include_router(history_router, prefix=settings.API_V1_PREFIX)
 
-    # ─── Root & health ──────────────────────────────────────────
-    @app.get("/", tags=["meta"])
-    async def root():
-        return {
-            "name": settings.APP_NAME,
-            "version": "1.0.0",
-            "status": "running",
-            "docs": "/docs",
-        }
-
+    # ─── Frontend & Health ──────────────────────────────────────
     @app.get("/health", tags=["meta"])
     async def health():
         return {"status": "ok"}
+
+    # Define frontend build path (assumes Flutter build web was run)
+    # backend/app/main.py -> ../../build/web
+    frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "build", "web"))
+
+    @app.get("/{full_path:path}", tags=["frontend"])
+    async def serve_frontend(full_path: str):
+        # Skip API routes (though routers should catch them first)
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("redoc") or full_path.startswith("openapi.json"):
+             return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
+        # 1. Check if the requested path is a specific file (e.g., main.dart.js)
+        file_path = os.path.join(frontend_dir, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        # 2. Otherwise, serve index.html (for Flutter SPA routing)
+        index_path = os.path.join(frontend_dir, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+            
+        # 3. Fallback if build doesn't exist
+        return JSONResponse(
+            status_code=404,
+            content={
+                "name": settings.APP_NAME,
+                "status": "running",
+                "message": "Frontend build not found. Please run 'flutter build web' in the project root.",
+                "docs": "/docs"
+            }
+        )
 
     # ─── Exception handlers ─────────────────────────────────────
     @app.exception_handler(RequestValidationError)

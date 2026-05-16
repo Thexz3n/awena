@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../utils/validators.dart';
 import '../widgets/app_form_fields.dart';
 import '../widgets/language_picker.dart';
+import 'home_screen.dart';
 import 'login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -191,6 +192,30 @@ class _SignupScreenState extends State<SignupScreen>
     }
   }
 
+  Future<void> _handleSocialLogin(String provider) async {
+    final loc = context.read<LocalizationProvider>();
+    final result = await context.read<AuthProvider>().loginWithSocial(provider);
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HomeScreen(), 
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
+      );
+    } else if (result['message'] != 'Cancelled or failed.') {
+      AppToast.show(
+        context,
+        message: mapServerError(result['message']?.toString(), loc),
+        kind: ToastKind.error,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = context.watch<LocalizationProvider>();
@@ -202,30 +227,6 @@ class _SignupScreenState extends State<SignupScreen>
         child: Stack(
           children: [
             _SignupBackdrop(controller: _bgCtrl),
-
-            // Top bar — back + language pill
-            PositionedDirectional(
-              top: 12,
-              start: 16,
-              end: 16,
-              child: SafeArea(
-                child: Row(
-                  children: [
-                    _CircleIconBtn(
-                      icon: loc.isRtl
-                          ? Icons.arrow_forward_ios_rounded
-                          : Icons.arrow_back_ios_new_rounded,
-                      onTap: () => Navigator.of(context).pop(),
-                    ).animate().fadeIn(duration: 300.ms),
-                    const Spacer(),
-                    _LanguagePill(
-                      code: loc.language.code,
-                      onTap: () => LanguagePicker.show(context),
-                    ).animate(delay: 200.ms).fadeIn(),
-                  ],
-                ),
-              ),
-            ),
 
             SafeArea(
               child: SingleChildScrollView(
@@ -462,6 +463,73 @@ class _SignupScreenState extends State<SignupScreen>
                         .fadeIn(duration: 400.ms)
                         .slideY(begin: 0.15),
 
+                    const SizedBox(height: 26),
+
+                    // ─── Divider ────────────────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(colors: [
+                                Colors.transparent,
+                                AppColors.cardBorder,
+                              ]),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Text(
+                            loc.tr('login_or_continue'), // Reusing the 'OR' translation
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            height: 1,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(colors: [
+                                AppColors.cardBorder,
+                                Colors.transparent,
+                              ]),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ).animate(delay: 650.ms).fadeIn(),
+
+                    const SizedBox(height: 18),
+
+                    // ─── Social ─────────────────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _SocialButton(
+                            label: loc.tr('social_google'),
+                            icon: Icons.g_mobiledata_rounded,
+                            iconSize: 28,
+                            onTap: () => _handleSocialLogin('google'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _SocialButton(
+                            label: loc.tr('social_facebook'),
+                            icon: Icons.facebook_rounded,
+                            iconSize: 22,
+                            onTap: () => _handleSocialLogin('facebook'),
+                          ),
+                        ),
+                      ],
+                    ).animate(delay: 700.ms).fadeIn(),
+
                     const SizedBox(height: 32),
 
                     Center(
@@ -496,6 +564,42 @@ class _SignupScreenState extends State<SignupScreen>
                         ),
                       ),
                     ).animate(delay: 700.ms).fadeIn(),
+                  ],
+                ),
+              ),
+            ),
+
+            // Top bar — back + language pill - Moved to end to receive events
+            PositionedDirectional(
+              top: 12,
+              start: 16,
+              end: 16,
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        loc.isRtl
+                            ? Icons.arrow_forward_ios_rounded
+                            : Icons.arrow_back_ios_new_rounded,
+                        color: AppColors.textPrimary,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.card.withOpacity(0.7),
+                        padding: const EdgeInsets.all(10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: AppColors.cardBorder),
+                        ),
+                      ),
+                    ).animate().fadeIn(duration: 300.ms),
+                    const Spacer(),
+                    _LanguagePill(
+                      code: loc.language.code,
+                      onTap: () => LanguagePicker.show(context),
+                    ).animate(delay: 200.ms).fadeIn(),
                   ],
                 ),
               ),
@@ -683,33 +787,6 @@ class _SignupBackdrop extends StatelessWidget {
   }
 }
 
-// ═══ Top icon button ═══════════════════════════════════════════════════
-class _CircleIconBtn extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  const _CircleIconBtn({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: AppColors.card.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.cardBorder),
-          ),
-          child: Icon(icon, size: 17, color: AppColors.textPrimary),
-        ),
-      ),
-    );
-  }
-}
 
 class _LanguagePill extends StatelessWidget {
   final String code;
@@ -738,7 +815,7 @@ class _LanguagePill extends StatelessWidget {
                   size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Text(
-                code.toUpperCase(),
+                code == 'ckb' ? 'KU' : code.toUpperCase(),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 12,
@@ -749,6 +826,68 @@ class _LanguagePill extends StatelessWidget {
               const SizedBox(width: 4),
               const Icon(Icons.keyboard_arrow_down_rounded,
                   size: 14, color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══ Social Button ═══════════════════════════════════════════════════════
+class _SocialButton extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final double iconSize;
+  final VoidCallback onTap;
+
+  const _SocialButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.iconSize = 22,
+  });
+
+  @override
+  State<_SocialButton> createState() => _SocialButtonState();
+}
+
+class _SocialButtonState extends State<_SocialButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          height: 52,
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon,
+                  size: widget.iconSize, color: AppColors.textPrimary),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),

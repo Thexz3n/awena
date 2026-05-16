@@ -66,6 +66,38 @@ class AuthService {
     }
   }
 
+  // ─── Social Login ─────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> loginWithSocial({
+    required String provider, // 'google' or 'facebook'
+    required String token,
+  }) async {
+    try {
+      final data = await _api.post('/auth/social', auth: false, body: {
+        'provider': provider,
+        'token': token,
+      }) as Map<String, dynamic>;
+
+      await _api.saveTokens(
+        access: data['access_token'] as String,
+        refresh: data['refresh_token'] as String,
+      );
+
+      final user = UserModel.fromJson(
+        Map<String, dynamic>.from(data['user'] as Map),
+      );
+
+      return {
+        'success': true,
+        'message': data['message'] ?? 'Login successful.',
+        'user': user,
+      };
+    } on ApiException catch (e) {
+      return {'success': false, 'message': e.message};
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
   // ─── Logout ───────────────────────────────────────────────────────────────
   Future<void> logout() async {
     final refresh = await _api.getRefreshToken();

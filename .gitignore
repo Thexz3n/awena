@@ -55,9 +55,10 @@ private_key*
 *.key
 
 # Backend specific
-backend/venc/
+backend/venv/
 *.sqlite
 *.db
+lib.zip
 
 # IDE and local files
 sign_language.iml

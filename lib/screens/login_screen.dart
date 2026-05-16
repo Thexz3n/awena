@@ -126,6 +126,30 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  Future<void> _handleSocialLogin(String provider) async {
+    final loc = context.read<LocalizationProvider>();
+    final result = await context.read<AuthProvider>().loginWithSocial(provider);
+
+    if (!mounted) return;
+
+    if (result['success'] == true) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const HomeScreen(),
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
+      );
+    } else if (result['message'] != 'Cancelled or failed.') {
+      AppToast.show(
+        context,
+        message: mapServerError(result['message']?.toString(), loc),
+        kind: ToastKind.error,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = context.watch<LocalizationProvider>();
@@ -137,18 +161,6 @@ class _LoginScreenState extends State<LoginScreen>
         child: Stack(
           children: [
             _AnimatedBackdrop(controller: _bgCtrl),
-
-            // Language pill (top-end)
-            PositionedDirectional(
-              top: 12,
-              end: 16,
-              child: SafeArea(
-                child: _LanguagePill(
-                  code: loc.language.code,
-                  onTap: () => LanguagePicker.show(context),
-                ).animate(delay: 200.ms).fadeIn(),
-              ),
-            ),
 
             SafeArea(
               child: SingleChildScrollView(
@@ -171,33 +183,19 @@ class _LoginScreenState extends State<LoginScreen>
                               begin: const Offset(0.4, 0.4),
                             ),
                         const SizedBox(width: 12),
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Sign',
-                                style: GoogleFonts.syne(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'slator',
-                                style: GoogleFonts.syne(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  foreground: Paint()
-                                    ..shader = const LinearGradient(
-                                      colors: [
-                                        AppColors.accent,
-                                        AppColors.teal,
-                                      ],
-                                    ).createShader(
-                                        const Rect.fromLTWH(0, 0, 120, 30)),
-                                ),
-                              ),
-                            ],
+                        Text(
+                          loc.tr('app_name'),
+                          style: GoogleFonts.syne(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            foreground: Paint()
+                              ..shader = const LinearGradient(
+                                colors: [
+                                  AppColors.accent,
+                                  AppColors.teal,
+                                ],
+                              ).createShader(
+                                  const Rect.fromLTWH(0, 0, 150, 30)),
                           ),
                         ).animate(delay: 150.ms).fadeIn(),
                       ],
@@ -359,19 +357,19 @@ class _LoginScreenState extends State<LoginScreen>
                       children: [
                         Expanded(
                           child: _SocialButton(
-                            label: 'Google',
+                            label: loc.tr('social_google'),
                             icon: Icons.g_mobiledata_rounded,
                             iconSize: 28,
-                            onTap: () {},
+                            onTap: () => _handleSocialLogin('google'),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _SocialButton(
-                            label: 'Apple',
-                            icon: Icons.apple_rounded,
-                            iconSize: 20,
-                            onTap: () {},
+                            label: loc.tr('social_facebook'),
+                            icon: Icons.facebook_rounded,
+                            iconSize: 22,
+                            onTap: () => _handleSocialLogin('facebook'),
                           ),
                         ),
                       ],
@@ -419,6 +417,18 @@ class _LoginScreenState extends State<LoginScreen>
                     const SizedBox(height: 24),
                   ],
                 ),
+              ),
+            ),
+
+            // Language pill (top-end) - Moved to end of Stack to receive events
+            PositionedDirectional(
+              top: 12,
+              end: 16,
+              child: SafeArea(
+                child: _LanguagePill(
+                  code: loc.language.code,
+                  onTap: () => LanguagePicker.show(context),
+                ).animate(delay: 200.ms).fadeIn(),
               ),
             ),
           ],
@@ -595,7 +605,7 @@ class _LanguagePill extends StatelessWidget {
                   size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Text(
-                code.toUpperCase(),
+                code == 'ckb' ? 'KU' : code.toUpperCase(),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 12,

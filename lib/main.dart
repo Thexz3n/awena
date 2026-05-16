@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:ckb_localizations/ckb_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/localization_provider.dart';
@@ -10,6 +12,10 @@ import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -48,16 +54,17 @@ class SignslatorApp extends StatelessWidget {
       child: Consumer<LocalizationProvider>(
         builder: (context, loc, _) {
           return MaterialApp(
-            title: 'Signslator',
+            title: loc.tr('app_name'),
             debugShowCheckedModeBanner: false,
             theme: AppTheme.dark,
             // ─── Localization ─────────────────────────────────
             locale: loc.locale,
             supportedLocales: const [
               Locale('en', 'US'),
-              Locale('ku', 'IQ'), // Kurdish (Sorani)
+              Locale('ckb', 'IQ'), // Kurdish (Sorani)
             ],
             localizationsDelegates: const [
+              ...CkbLocalizations.localizationsDelegates,
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

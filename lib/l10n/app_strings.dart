@@ -12,15 +12,15 @@
 class AppStrings {
   static const Map<String, Map<String, String>> _values = {
     'en': _en,
-    'ku': _ku,
+    'ckb': _ku,
   };
 
   final String languageCode;
   const AppStrings(this.languageCode);
 
   String get(String key) {
-    final table = _values[languageCode] ?? _en;
-    return table[key] ?? _en[key] ?? key;
+    final table = _values[languageCode] ?? _ku;
+    return table[key] ?? _ku[key] ?? key;
   }
 
   String operator [](String key) => get(key);
@@ -38,7 +38,7 @@ class AppStrings {
 // ─── ENGLISH ─────────────────────────────────────────────────────────────────
 const Map<String, String> _en = {
   // App
-  'app_name': 'Signslator',
+  'app_name': 'Awêna',
   'app_tagline': 'Bridging the gap between\nsign language and the world',
 
   // Splash
@@ -57,6 +57,8 @@ const Map<String, String> _en = {
   'login_forgot': 'Forgot password?',
   'login_button': 'Sign In',
   'login_or_continue': 'or continue with',
+  'social_google': 'Google',
+  'social_facebook': 'Facebook',
   'login_no_account': "Don't have an account? ",
   'login_signup_link': 'Sign up',
   'login_empty_fields': 'Please enter both email and password',
@@ -260,7 +262,7 @@ const Map<String, String> _en = {
 // ─── KURDISH (SORANI / Central Kurdish — کوردیی ناوەندی) ─────────────────────
 const Map<String, String> _ku = {
   // App
-  'app_name': 'سایننسلاتۆر',
+  'app_name': 'ئاوێنە',
   'app_tagline': 'پردێک لە نێوان زمانی ئاماژەیی\nو جیهاندا',
 
   // Splash
@@ -279,6 +281,8 @@ const Map<String, String> _ku = {
   'login_forgot': 'وشەی نهێنیت لەبیر چووە؟',
   'login_button': 'چوونەژوورەوە',
   'login_or_continue': 'یان بەردەوامبە بە',
+  'social_google': 'گۆگڵ',
+  'social_facebook': 'فەیسبووک',
   'login_no_account': 'هەژمارت نییە؟ ',
   'login_signup_link': 'هەژمار دروستبکە',
   'login_empty_fields': 'تکایە ئیمەیڵ و وشەی نهێنی بنووسە',

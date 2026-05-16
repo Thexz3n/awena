@@ -20,10 +20,18 @@ import 'package:http/http.dart' as http;
 ///   • iOS Simulator    → http://127.0.0.1:8000/api/v1
 ///   • Physical device  → http://<your-PC-LAN-IP>:8000/api/v1
 class ApiConfig {
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000/api/v1',
-  );
+  static String get baseUrl {
+    const fromEnv = String.fromEnvironment('API_BASE_URL');
+    if (fromEnv.isNotEmpty) return fromEnv;
+
+    if (kIsWeb) {
+      // On Web, use a relative path if the backend is on the same URL
+      return '/api/v1';
+    }
+
+    // Default for Android Emulator
+    return 'http://10.0.2.2:8000/api/v1';
+  }
 
   static const Duration timeout = Duration(seconds: 20);
 }

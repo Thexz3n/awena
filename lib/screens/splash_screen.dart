@@ -104,42 +104,6 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
 
-            // Language switcher pinned at the top-right
-            Positioned(
-              top: 12,
-              right: 16,
-              child: SafeArea(
-                child: GestureDetector(
-                  onTap: () => LanguagePicker.show(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.language_rounded,
-                            size: 16, color: AppColors.accent),
-                        const SizedBox(width: 6),
-                        Text(
-                          loc.language.code.toUpperCase(),
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -155,32 +119,17 @@ class _SplashScreenState extends State<SplashScreen>
                         )
                         .fadeIn(duration: 400.ms),
                     const SizedBox(height: 32),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'Sign',
-                            style: GoogleFonts.syne(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                          TextSpan(
-                            text: 'slator',
-                            style: GoogleFonts.syne(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w800,
-                              foreground: Paint()
-                                ..shader = const LinearGradient(
-                                  colors: [AppColors.accent, AppColors.teal],
-                                ).createShader(
-                                    const Rect.fromLTWH(0, 0, 200, 50)),
-                              letterSpacing: -1,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      loc.tr('app_name'),
+                      style: GoogleFonts.syne(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        foreground: Paint()
+                          ..shader = const LinearGradient(
+                            colors: [AppColors.accent, AppColors.teal],
+                          ).createShader(
+                              const Rect.fromLTWH(0, 0, 250, 50)),
+                        letterSpacing: -1,
                       ),
                     )
                         .animate(delay: 200.ms)
@@ -241,6 +190,44 @@ class _SplashScreenState extends State<SplashScreen>
                     ).animate(delay: 750.ms).fadeIn(),
                     const SizedBox(height: 24),
                   ],
+                ),
+              ),
+            ),
+
+            // Language switcher pinned at the top-right - Moved to end to receive events
+            Positioned(
+              top: 12,
+              right: 16,
+              child: SafeArea(
+                child: GestureDetector(
+                  onTap: () => LanguagePicker.show(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.language_rounded,
+                            size: 16, color: AppColors.accent),
+                        const SizedBox(width: 6),
+                        Text(
+                          loc.language.code == 'ckb'
+                              ? 'KU'
+                              : loc.language.code.toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -17,6 +17,7 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     SignupRequest,
     SignupResponse,
+    SocialLoginRequest,
 )
 from app.schemas.common import APIResponse
 from app.schemas.user import UserRead
@@ -65,6 +66,29 @@ async def login(
         success=True,
         message="Login successful.",
         token=access,                # Flutter compatibility (legacy field name)
+        access_token=access,
+        refresh_token=refresh,
+        user=UserRead.model_validate(user),
+    )
+
+
+# ─── Social Login ───────────────────────────────────────────────
+@router.post(
+    "/social",
+    response_model=LoginResponse,
+    summary="Authenticate via social provider (Google/Facebook)",
+)
+async def social_login(
+    payload: SocialLoginRequest,
+    db: Session = Depends(get_db),
+):
+    svc = AuthService(db)
+    user = await svc.authenticate_social(payload.provider, payload.token)
+    access, refresh = svc.issue_tokens(user)
+    return LoginResponse(
+        success=True,
+        message="Social login successful.",
+        token=access,
         access_token=access,
         refresh_token=refresh,
         user=UserRead.model_validate(user),

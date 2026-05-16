@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     DB_PORT: int = 3306
     DB_USER: str = "root"
     DB_PASSWORD: str = ""
-    DB_NAME: str = "signslator"
+    DB_NAME: str = "awena"
 
     # Security
     SECRET_KEY: str = Field(..., min_length=32)
@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     RATE_LIMIT_LOGIN: str = "10/minute"
     RATE_LIMIT_SIGNUP: str = "5/minute"
     RATE_LIMIT_FORGOT: str = "3/minute"
+
+    # Social Auth (Set these in .env)
+    GOOGLE_CLIENT_ID: str = ""
+    FACEBOOK_APP_ID: str = ""
 
     # i18n
     DEFAULT_LANGUAGE: str = "en"

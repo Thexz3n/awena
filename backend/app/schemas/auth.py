@@ -55,6 +55,11 @@ class LoginResponse(BaseModel):
     user: UserRead
 
 
+class SocialLoginRequest(BaseModel):
+    provider: str  # 'google' or 'facebook'
+    token: str
+
+
 # ─── Refresh ───────────────────────────────────────────────────
 class RefreshRequest(BaseModel):
     refresh_token: str

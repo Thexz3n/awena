@@ -10,6 +10,7 @@ import '../l10n/localization_provider.dart';
 import '../models/user_model.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../services/social_auth_service.dart';
 import '../services/user_service.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -54,6 +55,39 @@ class AuthProvider extends ChangeNotifier {
     }
     _setLoading(false);
     return result;
+  }
+
+  // ─── Social Login ─────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> loginWithSocial(String provider) async {
+    _setLoading(true);
+    try {
+      String? token;
+      if (provider == 'google') {
+        token = await SocialAuthService.instance.signInWithGoogle();
+      } else if (provider == 'facebook') {
+        token = await SocialAuthService.instance.signInWithFacebook();
+      }
+
+      if (token == null) {
+        _setLoading(false);
+        return {'success': false, 'message': 'Cancelled or failed.'};
+      }
+
+      final result = await _auth.loginWithSocial(
+        provider: provider,
+        token: token,
+      );
+
+      if (result['success'] == true && result['user'] is UserModel) {
+        _user = result['user'] as UserModel;
+        await l10n.setLanguageCode(_user!.language);
+      }
+      _setLoading(false);
+      return result;
+    } catch (e) {
+      _setLoading(false);
+      return {'success': false, 'message': 'Social login failed: $e'};
+    }
   }
 
   // ─── Signup flow ─────────────────────────────────────────────────────────

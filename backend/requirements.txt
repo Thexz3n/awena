@@ -24,3 +24,6 @@ slowapi==0.1.9
 
 # ── Misc ─────────────────────────────────────────────────────
 python-dotenv==1.0.1
+requests==2.32.3
+google-auth==2.37.0
+aiofiles==24.1.0

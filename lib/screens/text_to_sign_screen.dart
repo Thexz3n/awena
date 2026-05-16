@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -140,7 +143,8 @@ class _TextToSignScreenState extends State<TextToSignScreen>
   Widget build(BuildContext context) {
     final loc = context.watch<LocalizationProvider>();
 
-    return Container(
+    // ─── Underlying screen content ────────────────────────────────────────────
+    final Widget screenContent = Container(
       decoration: const BoxDecoration(gradient: AppColors.bgGradient),
       child: SafeArea(
         child: SingleChildScrollView(
@@ -338,6 +342,180 @@ class _TextToSignScreenState extends State<TextToSignScreen>
               ).animate(delay: 300.ms).fadeIn(),
 
               const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // ─── "Coming soon" overlay with blur ─────────────────────────────────────
+    return Stack(
+      children: [
+        // 1. The real screen (blurred behind the overlay)
+        screenContent,
+
+        // 2. Full-screen blur
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: const SizedBox.expand(),
+          ),
+        ),
+
+        // 3. Semi-transparent dark tint so the card pops
+        Positioned.fill(
+          child: Container(color: Colors.black.withOpacity(0.45)),
+        ),
+
+        // 4. Centred availability card
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: _ComingSoonCard(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Coming-soon overlay card ──────────────────────────────────────────────────
+class _ComingSoonCard extends StatelessWidget {
+  static const _url = 'https://text-to-sign-seven.vercel.app/';
+
+  const _ComingSoonCard();
+
+  Future<void> _openWebsite() async {
+    final uri = Uri.parse(_url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.18),
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon badge
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [AppColors.teal, AppColors.accent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.teal.withOpacity(0.4),
+                      blurRadius: 24,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.sign_language_rounded,
+                  color: Colors.white,
+                  size: 34,
+                ),
+              ).animate().scale(
+                    duration: 600.ms,
+                    curve: Curves.elasticOut,
+                  ),
+
+              const SizedBox(height: 20),
+
+              // Heading
+              Text(
+                'Coming Soon',
+                style: GoogleFonts.syne(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
+              ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
+
+              const SizedBox(height: 12),
+
+              // Body message
+              Text(
+                'For now this feature is only available on our website.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: Colors.white.withOpacity(0.75),
+                ),
+              ).animate(delay: 180.ms).fadeIn(duration: 400.ms),
+
+              const SizedBox(height: 24),
+
+              // CTA button
+              GestureDetector(
+                onTap: _openWebsite,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 28,
+                    vertical: 14,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.teal, AppColors.accent],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(50),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.teal.withOpacity(0.35),
+                        blurRadius: 18,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.open_in_browser_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Click here to go to the website',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+                  .animate(delay: 260.ms)
+                  .fadeIn(duration: 400.ms)
+                  .slideY(begin: 0.15, end: 0),
             ],
           ),
         ),

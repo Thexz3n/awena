@@ -26,16 +26,14 @@ enum AppLanguage {
   static AppLanguage fromCode(String code) {
     return AppLanguage.values.firstWhere(
       (l) => l.code == code,
-      orElse: () => AppLanguage.english,
+      orElse: () => AppLanguage.kurdish,
     );
   }
 
   Locale get locale {
-    // Sorani: language=ku, script=Arab, region=IQ.
-    // We use 'ku' here because Flutter's MaterialLocalizations doesn't have
-    // a built-in 'ckb' code, but does have 'ku'. The actual translations are
-    // ours and identified by the 'ckb' string code.
-    if (this == AppLanguage.kurdish) return const Locale('ku', 'IQ');
+    // Sorani: language=ckb, script=Arab, region=IQ.
+    // We use 'ckb' here to match ckb_localizations package and standard codes.
+    if (this == AppLanguage.kurdish) return const Locale('ckb', 'IQ');
     return const Locale('en', 'US');
   }
 }
@@ -43,8 +41,8 @@ enum AppLanguage {
 class LocalizationProvider extends ChangeNotifier {
   static const _prefsKey = 'app_language';
 
-  AppLanguage _language = AppLanguage.english;
-  AppStrings _strings = const AppStrings('en');
+  AppLanguage _language = AppLanguage.kurdish;
+  AppStrings _strings = const AppStrings('ckb');
   bool _initialized = false;
 
   AppLanguage get language => _language;

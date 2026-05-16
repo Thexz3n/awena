@@ -15,6 +15,9 @@ from app.core.security import (
     hash_token,
     verify_password,
 )
+import requests
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 from app.models.password_reset import PasswordReset
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
@@ -69,6 +72,74 @@ class AuthService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is disabled.",
             )
+        return user
+
+    # ─── Social Auth ───────────────────────────────────────────
+    async def authenticate_social(self, provider: str, token: str) -> User:
+        """Verify social token, get profile, and find/create user."""
+        email = ""
+        name = ""
+
+        if provider == "google":
+            try:
+                # Specify the CLIENT_ID of the app that accesses the backend:
+                idinfo = id_token.verify_oauth2_token(
+                    token, google_requests.Request(), settings.GOOGLE_CLIENT_ID
+                )
+                email = idinfo["email"]
+                name = idinfo.get("name", email.split("@")[0])
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Invalid Google token: {str(e)}",
+                )
+
+        elif provider == "facebook":
+            # Facebook Graph API verification
+            try:
+                # We verify the token by calling the 'me' endpoint
+                resp = requests.get(
+                    "https://graph.facebook.com/me",
+                    params={"fields": "id,name,email", "access_token": token},
+                )
+                if resp.status_code != 200:
+                    raise Exception("Facebook verification failed")
+                fb_data = resp.json()
+                email = fb_data.get("email")
+                if not email:
+                    # Some FB accounts don't have email; we use ID as fallback email
+                    email = f"{fb_data['id']}@facebook.com"
+                name = fb_data.get("name", email.split("@")[0])
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Invalid Facebook token: {str(e)}",
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unsupported social provider.",
+            )
+
+        # Find or create user
+        user = self.db.query(User).filter(User.email == email.lower()).first()
+        if not user:
+            user = User(
+                name=name,
+                email=email.lower(),
+                password_hash="",  # Social users don't have a local password
+                is_active=True,
+            )
+            self.db.add(user)
+            self.db.commit()
+            self.db.refresh(user)
+        
+        if not user.is_active:
+             raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Account is disabled.",
+            )
+            
         return user
 
     # ─── Token issuance ────────────────────────────────────────
