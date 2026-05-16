@@ -349,32 +349,34 @@ class _TextToSignScreenState extends State<TextToSignScreen>
     );
 
     // ─── "Coming soon" overlay with blur ─────────────────────────────────────
-    return Stack(
-      children: [
-        // 1. The real screen (blurred behind the overlay)
-        screenContent,
+    return Material(
+      color: Colors.transparent,
+      child: Stack(
+        children: [
+          // 1. The real screen (interactivity disabled while overlay is active)
+          AbsorbPointer(child: screenContent),
 
-        // 2. Full-screen blur
-        Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: const SizedBox.expand(),
+          // 2. Full-screen blur & darken
+          Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  color: Colors.black.withOpacity(0.55),
+                ),
+              ),
+            ),
           ),
-        ),
 
-        // 3. Semi-transparent dark tint so the card pops
-        Positioned.fill(
-          child: Container(color: Colors.black.withOpacity(0.45)),
-        ),
-
-        // 4. Centred availability card
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: _ComingSoonCard(),
+          // 3. Centred availability card
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: _ComingSoonCard(),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -457,14 +459,27 @@ class _ComingSoonCard extends StatelessWidget {
 
               // Body message
               Text(
-                'For now this feature is only available on our website.',
+                'For now this feature is only available on our website at:',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
-                  height: 1.6,
-                  color: Colors.white.withOpacity(0.75),
+                  height: 1.4,
+                  color: Colors.white.withOpacity(0.7),
                 ),
               ).animate(delay: 180.ms).fadeIn(duration: 400.ms),
+
+              const SizedBox(height: 8),
+
+              Text(
+                _url,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  color: AppColors.teal,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                ),
+              ).animate(delay: 220.ms).fadeIn(),
 
               const SizedBox(height: 24),
 
