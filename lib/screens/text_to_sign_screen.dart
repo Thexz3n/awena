@@ -396,6 +396,7 @@ class _ComingSoonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocalizationProvider>();
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -446,7 +447,7 @@ class _ComingSoonCard extends StatelessWidget {
 
               // Heading
               Text(
-                'Coming Soon',
+                loc.tr('coming_soon_title'),
                 style: GoogleFonts.syne(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -459,7 +460,7 @@ class _ComingSoonCard extends StatelessWidget {
 
               // Body message
               Text(
-                'For now this feature is only available on our website at:',
+                loc.tr('coming_soon_body'),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
@@ -517,7 +518,7 @@ class _ComingSoonCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Click here to go to the website',
+                        loc.tr('coming_soon_btn'),
                         style: GoogleFonts.dmSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

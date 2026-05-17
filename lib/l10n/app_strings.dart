@@ -257,6 +257,9 @@ const Map<String, String> _en = {
   'error_network': 'Network error. Please check your connection.',
   'error_server': 'Server error. Please try again later.',
   'error_unauthorized': 'Session expired. Please sign in again.',
+  'coming_soon_title': 'Coming Soon',
+  'coming_soon_body': 'For now this feature is only available on our website at:',
+  'coming_soon_btn': 'Click here to go to the website',
 };
 
 // ─── KURDISH (SORANI / Central Kurdish — کوردیی ناوەندی) ─────────────────────
@@ -481,4 +484,7 @@ const Map<String, String> _ku = {
   'error_network': 'هەڵەی تۆڕ. تکایە پەیوەندیەکەت بپشکنە.',
   'error_server': 'هەڵەی سێرڤەر. تکایە دواتر هەوڵبدەرەوە.',
   'error_unauthorized': 'دانیشتن بەسەرچووە. تکایە دیسان بچۆ ژوورەوە.',
+  'coming_soon_title': 'بەمزووانە دێت',
+  'coming_soon_body': 'بۆ ئێستا ئەم تایبەتمەندییە تەنها لە ماڵپەڕەکەماندا بەردەستە:',
+  'coming_soon_btn': 'لێرە کلیک بکە بۆ چوونە سەر ماڵپەڕەکە',
 };
