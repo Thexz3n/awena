@@ -133,6 +133,13 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
 
     if (result['success'] == true) {
+      AppToast.show(
+        context,
+        message: loc.isRtl
+            ? 'بەسەرکەوتوویی چوویتە ژوورەوە! بەخێربێیت.'
+            : 'Login successful! Welcome back to Awêna.',
+        kind: ToastKind.success,
+      );
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => const HomeScreen(),

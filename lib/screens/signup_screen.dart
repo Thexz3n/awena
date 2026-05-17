@@ -244,13 +244,71 @@ class _SignupScreenState extends State<SignupScreen>
     if (!mounted) return;
 
     if (result['success'] == true) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const HomeScreen(), 
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            backgroundColor: AppColors.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: AppColors.cardBorder),
+            ),
+            title: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline_rounded,
+                  color: AppColors.teal,
+                  size: 28,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  loc.tr('confirm'),
+                  style: GoogleFonts.syne(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              loc.isRtl
+                  ? (provider == 'google'
+                      ? 'هەژماری گۆگڵەکەت بە سەرکەوتوویی بەسترایەوە! بەخێر بێیت بۆ ئاوێنە.'
+                      : 'هەژمارەکەت بە سەرکەوتوویی بەسترایەوە! بەخێر بێیت بۆ ئاوێنە.')
+                  : (provider == 'google'
+                      ? 'Google account connected successfully! Welcome to Awêna.'
+                      : 'Social account connected successfully! Welcome to Awêna.'),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushReplacement(
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const HomeScreen(),
+                      transitionsBuilder: (_, anim, __, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                      transitionDuration: const Duration(milliseconds: 500),
+                    ),
+                  );
+                },
+                child: Text(
+                  loc.tr('ok'),
+                  style: const TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       );
     } else if (result['message'] != 'Cancelled or failed.') {
       AppToast.show(
