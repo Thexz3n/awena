@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<Widget> _pages = [
     _HomeTab(onSwitchTab: _switchTab),
     const SignToTextScreen(),
-    const TextToSignScreen(),
+    TextToSignScreen(onClose: () => _switchTab(0)),
     const HistoryScreen(),
   ];
 
