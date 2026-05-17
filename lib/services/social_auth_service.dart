@@ -47,11 +47,10 @@ class SocialAuthService {
       final GoogleSignInAuthentication auth = await account.authentication;
       
       if (auth.idToken == null) {
-        print('DEBUG: idToken is null. Credentials: AccessToken=${auth.accessToken != null}');
-        print('IMPORTANT: If you just changed Google Console settings, wait 5-10 minutes for Google to update.');
+        print('DEBUG: idToken is null. Using AccessToken as fallback for Web.');
       }
 
-      return auth.idToken;
+      return auth.idToken ?? auth.accessToken;
     } catch (e, stack) {
       print('CRITICAL: Google Sign-In Error: $e');
       print('STACKTRACE: $stack');

@@ -82,17 +82,29 @@ class AuthService:
 
         if provider == "google":
             try:
-                # Specify the CLIENT_ID of the app that accesses the backend:
+                # 1. Try validating as an ID Token first
                 idinfo = id_token.verify_oauth2_token(
                     token, google_requests.Request(), settings.GOOGLE_CLIENT_ID
                 )
                 email = idinfo["email"]
                 name = idinfo.get("name", email.split("@")[0])
-            except Exception as e:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail=f"Invalid Google token: {str(e)}",
-                )
+            except Exception as e_id:
+                # 2. Fallback: Try validating as an Access Token via Google UserInfo API
+                try:
+                    resp = requests.get(
+                        "https://www.googleapis.com/oauth2/v3/userinfo",
+                        headers={"Authorization": f"Bearer {token}"}
+                    )
+                    if resp.status_code != 200:
+                        raise Exception("Google UserInfo API verification failed")
+                    user_data = resp.json()
+                    email = user_data["email"]
+                    name = user_data.get("name", email.split("@")[0])
+                except Exception as e_access:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail=f"Invalid Google token (tried ID and Access token): ID Error: {str(e_id)} | Access Error: {str(e_access)}",
+                    )
 
         elif provider == "facebook":
             # Facebook Graph API verification
