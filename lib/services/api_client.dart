@@ -26,7 +26,7 @@ class ApiConfig {
 
     if (kIsWeb) {
       // On Web, use a relative path if the backend is on the same URL
-      return 'http://localhost:8000/api/v1';
+      return 'http://172.20.10.4:8000/api/v1';
     }
 
     // Default for Android Emulator
