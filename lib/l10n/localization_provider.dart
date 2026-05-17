@@ -23,6 +23,8 @@ enum AppLanguage {
 
   const AppLanguage(this.code, this.displayName, this.direction);
 
+  String get shortCode => code == 'ckb' ? 'KU' : code.toUpperCase();
+
   static AppLanguage fromCode(String code) {
     return AppLanguage.values.firstWhere(
       (l) => l.code == code,

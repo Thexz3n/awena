@@ -216,9 +216,7 @@ class _SplashScreenState extends State<SplashScreen>
                             size: 16, color: AppColors.accent),
                         const SizedBox(width: 6),
                         Text(
-                          loc.language.code == 'ckb'
-                              ? 'KU'
-                              : loc.language.code.toUpperCase(),
+                          loc.language.shortCode,
                           style: const TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 12,

@@ -433,7 +433,7 @@ class _SignToTextScreenState extends State<SignToTextScreen>
                           ),
                           const Spacer(),
                           Text(
-                            loc.language.code.toUpperCase(),
+                            loc.language.shortCode,
                             style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.accent,

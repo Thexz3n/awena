@@ -212,33 +212,19 @@ class _HomeTabState extends State<_HomeTab> {
                     // ─── Top bar ─────────────────────────────────────────
                     Row(
                       children: [
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'Sign',
-                                style: GoogleFonts.syne(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              TextSpan(
-                                text: 'slator',
-                                style: GoogleFonts.syne(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  foreground: Paint()
-                                    ..shader = const LinearGradient(
-                                      colors: [
-                                        AppColors.accent,
-                                        AppColors.teal
-                                      ],
-                                    ).createShader(
-                                        const Rect.fromLTWH(0, 0, 120, 30)),
-                                ),
-                              ),
-                            ],
+                        Text(
+                          loc.tr('app_name'),
+                          style: GoogleFonts.syne(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            foreground: Paint()
+                              ..shader = const LinearGradient(
+                                colors: [
+                                  AppColors.accent,
+                                  AppColors.teal,
+                                ],
+                              ).createShader(
+                                  const Rect.fromLTWH(0, 0, 140, 30)),
                           ),
                         ),
                         const Spacer(),
@@ -260,7 +246,7 @@ class _HomeTabState extends State<_HomeTab> {
                                     size: 14, color: AppColors.accent),
                                 const SizedBox(width: 4),
                                 Text(
-                                  loc.language.code.toUpperCase(),
+                                  loc.language.shortCode,
                                   style: const TextStyle(
                                     color: AppColors.textPrimary,
                                     fontSize: 11,
