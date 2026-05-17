@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:camera/camera.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,46 +35,117 @@ class _SignToTextScreenState extends State<SignToTextScreen>
   double _confidence = 0.0;
 
   late AnimationController _pulseCtrl;
-  final HistoryService _history = HistoryService();
+  CameraController? _cameraController;
+  WebSocketChannel? _channel;
+  bool _isProcessingFrame = false;
+  Timer? _frameTimer;
+  final _history = HistoryService();
 
   @override
   void initState() {
     super.initState();
     _pulseCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+      duration: const Duration(milliseconds: 900),
+    );
+    _initializeCamera();
   }
 
   @override
   void dispose() {
+    _frameTimer?.cancel();
     _pulseCtrl.dispose();
+    _cameraController?.dispose();
+    _channel?.sink.close();
     super.dispose();
   }
 
-  // ─── Detection lifecycle (YOU implement these) ────────────────────────────
+  Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
+    // Use front camera
+    final frontCamera = cameras.firstWhere(
+      (c) => c.lensDirection == CameraLensDirection.front,
+      orElse: () => cameras.first,
+    );
+
+    _cameraController = CameraController(
+      frontCamera,
+      ResolutionPreset.low, // Keep resolution low for faster transmission
+      imageFormatGroup: ImageFormatGroup.jpeg,
+    );
+    await _cameraController!.initialize();
+    if (mounted) setState(() {});
+  }
+
   Future<void> _startDetection() async {
-    // TODO: open camera, load ML model, start frame stream.
-    // When the model emits a translated sentence, call _pushDetectedText().
+    setState(() => _isRecording = true);
+    _pulseCtrl.repeat(reverse: true);
+
+    // ── Connect WebSocket ──────────────────────────────────────────
+    // Port 8001 = gesture WebSocket server (main.py)
+    // On mobile: replace localhost with your PC's local IP (e.g. 192.168.x.x)
+    const wsUrl = String.fromEnvironment(
+      'WS_URL',
+      defaultValue: 'ws://localhost:8001/ws/recognize',
+    );
+
+    try {
+      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      _channel!.stream.listen(
+        (message) {
+          final data = jsonDecode(message as String);
+          _pushDetectedText(
+            data['gesture'] as String,
+            (data['confidence'] as num).toDouble(),
+          );
+        },
+        onError: (e) => debugPrint('WS error: $e'),
+      );
+    } catch (e) {
+      debugPrint('WS connect failed: $e');
+    }
+
+    // ── Send frames every 200 ms (5 fps) ──────────────────────────
+    // Uses takePicture() which works on BOTH mobile AND Flutter Web.
+    // startImageStream() is NOT supported on Flutter Web.
+    _frameTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      _captureAndSend();
+    });
+  }
+
+  Future<void> _captureAndSend() async {
+    if (!_isRecording) return;
+    if (_isProcessingFrame) return;
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (_channel == null) return;
+
+    _isProcessingFrame = true;
+    try {
+      final XFile file = await _cameraController!.takePicture();
+      final List<int> bytes = await file.readAsBytes();
+      final String base64Image = base64Encode(bytes);
+      _channel!.sink.add(base64Image);
+    } catch (e) {
+      debugPrint('Frame capture error: $e');
+    } finally {
+      _isProcessingFrame = false;
+    }
   }
 
   Future<void> _stopDetection() async {
-    // TODO: tear down camera and model.
+    _frameTimer?.cancel();
+    _frameTimer = null;
+    setState(() => _isRecording = false);
+    _pulseCtrl.stop();
+    await _channel?.sink.close();
+    _channel = null;
   }
 
-  Future<void> _speakOutLoud(String text) async {
-    // TODO: integrate flutter_tts (or your preferred engine) here.
-  }
-
-  /// Hook your sign-detection model into this method.
-  /// It writes to the UI AND saves the entry to the backend.
-  void _pushDetectedText(String text, {double? confidence}) {
-    if (!mounted) return;
+  void _pushDetectedText(String newWord, double confidence) {
     setState(() {
-      _translatedText = text;
-      if (confidence != null) _confidence = confidence;
+      _translatedText += ' $newWord';
+      _confidence = confidence;
     });
-    _saveToHistory(text, confidence);
   }
 
   Future<void> _saveToHistory(String text, double? confidence) async {
@@ -88,15 +163,15 @@ class _SignToTextScreenState extends State<SignToTextScreen>
 
   // ─── Toggle ────────────────────────────────────────────────────────────────
   Future<void> _toggleRecording() async {
-    setState(() => _isRecording = !_isRecording);
     if (_isRecording) {
+      await _stopDetection();
+      await _saveToHistory(_translatedText, _confidence);
+    } else {
       setState(() {
         _translatedText = '';
         _confidence = 0.0;
       });
       await _startDetection();
-    } else {
-      await _stopDetection();
     }
   }
 
@@ -109,6 +184,11 @@ class _SignToTextScreenState extends State<SignToTextScreen>
       backgroundColor: AppColors.teal,
       duration: const Duration(seconds: 2),
     ));
+  }
+
+  Future<void> _speakOutLoud(String text) async {
+    // TODO: wire up flutter_tts or platform TTS
+    debugPrint('Speak: $text');
   }
 
   @override
@@ -135,26 +215,24 @@ class _SignToTextScreenState extends State<SignToTextScreen>
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: (_isRecording ? AppColors.teal : AppColors.accent)
                           .withOpacity(0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: (_isRecording
-                                ? AppColors.teal
-                                : AppColors.accent)
-                            .withOpacity(0.3),
+                        color:
+                            (_isRecording ? AppColors.teal : AppColors.accent)
+                                .withOpacity(0.3),
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         LiveDot(
-                          color: _isRecording
-                              ? AppColors.teal
-                              : AppColors.accent,
+                          color:
+                              _isRecording ? AppColors.teal : AppColors.accent,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -191,120 +269,144 @@ class _SignToTextScreenState extends State<SignToTextScreen>
 
             const SizedBox(height: 16),
 
-            // ─── Camera preview placeholder ───────────────────────
+            // ─── Camera preview ────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: GlassCard(
                 padding: EdgeInsets.zero,
                 borderRadius: 24,
-                borderColor: AppColors.accent.withOpacity(0.3),
-                child: Container(
-                  height: 220,
-                  decoration: BoxDecoration(
+                borderColor: (_isRecording ? AppColors.teal : AppColors.accent)
+                    .withOpacity(0.35),
+                child: GestureDetector(
+                  onTap: _toggleRecording,
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
-                    color: AppColors.surface,
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24),
-                          gradient: RadialGradient(
-                            colors: [
-                              AppColors.accent.withOpacity(0.05),
-                              AppColors.surface,
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (_isRecording) const ScanLineAnimation(),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: CornerBrackets(
-                          color: _isRecording
-                              ? AppColors.teal
-                              : AppColors.accent,
-                        ),
-                      ),
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedBuilder(
-                              animation: _pulseCtrl,
-                              builder: (_, __) => Transform.scale(
-                                scale: _isRecording
-                                    ? 1.0 + _pulseCtrl.value * 0.08
-                                    : 1.0,
-                                child: Container(
-                                  width: 64,
-                                  height: 64,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.accent.withOpacity(0.12),
-                                    border: Border.all(
-                                      color:
-                                          AppColors.accent.withOpacity(0.3),
-                                      width: 1.5,
+                    child: SizedBox(
+                      height: 200,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // ── Real camera feed ──────────────────────
+                          if (_cameraController != null &&
+                              _cameraController!.value.isInitialized)
+                            CameraPreview(_cameraController!)
+                          else
+                            // ── Loading / placeholder ─────────────
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.surface,
+                                gradient: RadialGradient(
+                                  colors: [
+                                    AppColors.accent.withOpacity(0.06),
+                                    AppColors.surface,
+                                  ],
+                                ),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const CircularProgressIndicator(
+                                      color: AppColors.accent,
+                                      strokeWidth: 2,
                                     ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.sign_language_rounded,
-                                    color: AppColors.accent,
-                                    size: 30,
-                                  ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      loc.tr('stt_camera_active'),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              _isRecording
-                                  ? loc.tr('stt_detecting')
-                                  : loc.tr('stt_camera_active'),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
+
+                          // ── Scan line overlay while recording ─────
+                          if (_isRecording) const ScanLineAnimation(),
+
+                          // ── Corner brackets ───────────────────────
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: CornerBrackets(
+                              color: _isRecording
+                                  ? AppColors.teal
+                                  : AppColors.accent,
+                            ),
+                          ),
+
+                          // ── Tap-to-start hint (shown when not recording) ──
+                          if (!_isRecording &&
+                              _cameraController != null &&
+                              _cameraController!.value.isInitialized)
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 18, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.45),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.fiber_manual_record,
+                                        color: AppColors.accent, size: 14),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      loc.tr('stt_tap_start'),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
+
+                          // ── Confidence badge ──────────────────────
+                          if (_isRecording && _confidence > 0)
+                            PositionedDirectional(
+                              top: 14,
+                              end: 14,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AppColors.teal.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: AppColors.teal.withOpacity(0.4)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.analytics_rounded,
+                                        size: 12, color: AppColors.teal),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${(_confidence * 100).toInt()}%',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.teal,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ).animate().fadeIn(duration: 300.ms),
+                            ),
+                        ],
                       ),
-                      if (_isRecording && _confidence > 0)
-                        PositionedDirectional(
-                          top: 14,
-                          end: 14,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: AppColors.teal.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: AppColors.teal.withOpacity(0.4)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.analytics_rounded,
-                                    size: 12, color: AppColors.teal),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${(_confidence * 100).toInt()}%',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.teal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ).animate().fadeIn(duration: 300.ms),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ).animate(delay: 150.ms).fadeIn().slideY(begin: 0.1),
+
 
             const SizedBox(height: 16),
 
@@ -340,24 +442,26 @@ class _SignToTextScreenState extends State<SignToTextScreen>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
-                      Expanded(
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 70,
                         child: _translatedText.isEmpty
                             ? Center(
                                 child: Text(
                                   loc.tr('stt_waiting'),
                                   style: TextStyle(
-                                    fontSize: 15,
-                                    color:
-                                        AppColors.textMuted.withOpacity(0.5),
+                                    fontSize: 14,
+                                    color: AppColors.textMuted.withOpacity(0.5),
                                     fontStyle: FontStyle.italic,
                                   ),
                                 ),
                               )
                             : Text(
                                 _translatedText,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.syne(
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textPrimary,
                                   height: 1.5,
@@ -435,16 +539,14 @@ class _SignToTextScreenState extends State<SignToTextScreen>
             const SizedBox(height: 8),
 
             Text(
-              _isRecording
-                  ? loc.tr('stt_tap_stop')
-                  : loc.tr('stt_tap_start'),
+              _isRecording ? loc.tr('stt_tap_stop') : loc.tr('stt_tap_start'),
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textMuted,
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
           ],
         ),
       ),

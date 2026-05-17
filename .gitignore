@@ -56,8 +56,10 @@ private_key*
 
 # Backend specific
 backend/venv/
+backend/venc/
 *.sqlite
 *.db
+*.pkl
 lib.zip
 
 # IDE and local files
