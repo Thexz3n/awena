@@ -126,7 +126,148 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  void _showFacebookComingSoonDialog(BuildContext context) {
+    final loc = context.read<LocalizationProvider>();
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(24, 36, 24, 28),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: AppColors.cardBorder, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF1877F2).withOpacity(0.15),
+                        border: Border.all(
+                          color: const Color(0xFF1877F2).withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1877F2).withOpacity(0.2),
+                            blurRadius: 20,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.facebook_rounded,
+                        color: Color(0xFF1877F2),
+                        size: 36,
+                      ),
+                    ).animate().scale(
+                          duration: 500.ms,
+                          curve: Curves.elasticOut,
+                        ),
+                    const SizedBox(height: 20),
+                    Text(
+                      loc.isRtl ? 'بەم زووانە...' : 'Coming Soon...',
+                      style: GoogleFonts.syne(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.5,
+                      ),
+                    ).animate(delay: 150.ms).fadeIn(),
+                    const SizedBox(height: 10),
+                    Text(
+                      loc.isRtl
+                          ? 'خزمەتگوزاری چوونەژوورەوە لە ڕێگەی فەیسبووک بەم زووانە بەردەست دەبێت!'
+                          : 'Facebook Sign-In integration is coming very soon. Stay tuned!',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ).animate(delay: 250.ms).fadeIn(),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1877F2),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        child: Text(
+                          loc.isRtl ? 'باشە' : 'Got it',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ).animate(delay: 350.ms).fadeIn().slideY(begin: 0.1),
+                  ],
+                ),
+              ),
+              PositionedDirectional(
+                top: -12,
+                end: -12,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(dialogContext).pop(),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.cardBorder, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textPrimary,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ).animate(delay: 100.ms).fadeIn().scale(curve: Curves.elasticOut),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _handleSocialLogin(String provider) async {
+    if (provider == 'facebook') {
+      _showFacebookComingSoonDialog(context);
+      return;
+    }
     final loc = context.read<LocalizationProvider>();
     final result = await context.read<AuthProvider>().loginWithSocial(provider);
 
