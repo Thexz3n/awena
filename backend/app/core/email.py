@@ -85,14 +85,14 @@ def send_reset_email(to_email: str, name: str, token: str) -> bool:
             
             <div class="rtl">
                 <h2>سڵاو {name} 👋</h2>
-                <p>داواکارییەکت پێگەیشتووە بۆ گۆڕینی وشەی نهێنی هەژمارەکەت. تکایە ئەم کۆدە بەکاربهێنە بۆ تەواوکردنی پرۆسەکە:</p>
+                <p>داواکارییەکت پێگەیشتووە بۆ گۆڕینی وشەی نهێنی هەژمارەکەت. تکایە ئەم کۆدەی خوارەوە بەکاربهێنە بۆ تەواوکردنی پرۆسەکە (ئەم کۆدە دوای ١٥ خولەک بەسەردەچێت):</p>
             </div>
             
             <div class="token-box">{token}</div>
             
             <div>
                 <h2>Hello {name} 👋</h2>
-                <p>We received a request to reset your password. Please use the verification code above to complete your reset:</p>
+                <p>We received a request to reset your password. Please use the verification code above to complete your reset (this code will expire in 15 minutes):</p>
             </div>
             
             <p class="footer">
@@ -107,10 +107,10 @@ def send_reset_email(to_email: str, name: str, token: str) -> bool:
     text_content = f"""
     Hello {name},
     We received a request to reset your password.
-    Your reset verification code is: {token}
+    Your reset verification code is: {token} (This code will expire in 15 minutes).
     
     سڵاو {name},
-    کۆدی نوێکردنەوەی وشەی نهێنیەکەت بریتییە لە: {token}
+    کۆدی نوێکردنەوەی وشەی نهێنیەکەت بریتییە لە: {token} (ئەم کۆدە دوای ١٥ خولەک بەسەردەچێت).
     """
 
     # Print to console for development convenience

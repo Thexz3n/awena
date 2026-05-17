@@ -207,6 +207,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen>
                       focusNode: _tokenFocus,
                       hint: loc.tr('rp_token'),
                       icon: Icons.vpn_key_outlined,
+                      keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       errorText: _tokenErr,
                       onSubmitted: (_) => _newFocus.requestFocus(),

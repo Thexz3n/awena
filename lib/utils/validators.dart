@@ -48,6 +48,11 @@ class Validators {
   static String? token(String? raw, LocalizationProvider loc) {
     final v = (raw ?? '').trim();
     if (v.isEmpty) return loc.tr('err_token_required');
+    if (v.length != 6 || int.tryParse(v) == null) {
+      return loc.isRtl
+          ? 'کۆدەکە دەبێت ٦ ژمارە بێت'
+          : 'Code must be exactly 6 digits';
+    }
     return null;
   }
 }

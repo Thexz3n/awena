@@ -76,8 +76,8 @@ def safe_decode(token: str) -> Optional[dict]:
 
 # ─── Random tokens (password reset) ─────────────────────────────
 def generate_reset_token() -> str:
-    """Cryptographically random url-safe token (sent to user)."""
-    return secrets.token_urlsafe(32)
+    """Cryptographically random 6-digit numeric token."""
+    return "".join(secrets.choice("0123456789") for _ in range(6))
 
 
 def hash_token(token: str) -> str:
