@@ -50,6 +50,13 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     FACEBOOK_APP_ID: str = ""
 
+    # SMTP Settings (for real password reset emails)
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = ""
+
     # i18n
     DEFAULT_LANGUAGE: str = "en"
     SUPPORTED_LANGUAGES: str = "en,ckb"

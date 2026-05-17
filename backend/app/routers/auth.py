@@ -1,5 +1,5 @@
 """Authentication routes."""
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -143,16 +143,20 @@ async def forgot_password(
     db: Session = Depends(get_db),
 ):
     user, raw = AuthService(db).create_password_reset(payload.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email address not registered."
+        )
 
-    # Always respond uniformly so an attacker can't enumerate emails.
-    msg = (
-        "If the email is registered, a reset token has been generated."
-    )
-    # In production: send `raw` via email. For dev/debug we return it.
+    # Send the reset email (real email if SMTP configured, else prints to console)
+    from app.core.email import send_reset_email
+    send_reset_email(to_email=user.email, name=user.name, token=raw)
+
     return ForgotPasswordResponse(
         success=True,
-        message=msg,
-        reset_token=raw if (settings.DEBUG and user is not None) else None,
+        message="A password reset token has been sent to your email address.",
+        reset_token=raw if settings.DEBUG else None,
     )
 
 

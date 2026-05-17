@@ -69,21 +69,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     if (!mounted) return;
     setState(() => _loading = false);
 
-    AppToast.show(
-      context,
-      message: (result['message'] as String?) ?? loc.tr('fp_check_email'),
-      kind: ToastKind.success,
-    );
+    if (result['success'] == true) {
+      AppToast.show(
+        context,
+        message: (result['message'] as String?) ?? loc.tr('fp_check_email'),
+        kind: ToastKind.success,
+      );
 
-    // DEBUG-mode token shortcut.
-    final token = result['reset_token'] as String?;
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => ResetPasswordScreen(prefilledToken: token),
-      ),
-    );
+      // DEBUG-mode token shortcut.
+      final token = result['reset_token'] as String?;
+      await Future.delayed(const Duration(milliseconds: 700));
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ResetPasswordScreen(prefilledToken: token),
+        ),
+      );
+    } else {
+      AppToast.show(
+        context,
+        message: (result['message'] as String?) ?? loc.tr('error_generic'),
+        kind: ToastKind.error,
+      );
+    }
   }
 
   @override
