@@ -426,7 +426,7 @@ class _LoginScreenState extends State<LoginScreen>
               end: 16,
               child: SafeArea(
                 child: _LanguagePill(
-                  code: loc.language.code,
+                  language: loc.language,
                   onTap: () => LanguagePicker.show(context),
                 ).animate(delay: 200.ms).fadeIn(),
               ),
@@ -579,9 +579,9 @@ class _AnimatedBackdrop extends StatelessWidget {
 
 // ═══ Language Pill ═══════════════════════════════════════════════════════
 class _LanguagePill extends StatelessWidget {
-  final String code;
+  final AppLanguage language;
   final VoidCallback onTap;
-  const _LanguagePill({required this.code, required this.onTap});
+  const _LanguagePill({required this.language, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -605,7 +605,7 @@ class _LanguagePill extends StatelessWidget {
                   size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Text(
-                code == 'ckb' ? 'KU' : code.toUpperCase(),
+                language.shortCode,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 12,

@@ -168,20 +168,65 @@ class _SignupScreenState extends State<SignupScreen>
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
-      AppToast.show(
-        context,
-        message: loc.tr('signup_success'),
-        kind: ToastKind.success,
-      );
-      await Future.delayed(const Duration(milliseconds: 700));
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const LoginScreen(),
-          transitionsBuilder: (_, anim, __, child) =>
-              FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            backgroundColor: AppColors.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: AppColors.cardBorder),
+            ),
+            title: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline_rounded,
+                  color: AppColors.teal,
+                  size: 28,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  loc.tr('confirm'),
+                  style: GoogleFonts.syne(
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              loc.tr('signup_success'),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pushReplacement(
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const LoginScreen(),
+                      transitionsBuilder: (_, anim, __, child) =>
+                          FadeTransition(opacity: anim, child: child),
+                      transitionDuration: const Duration(milliseconds: 500),
+                    ),
+                  );
+                },
+                child: Text(
+                  loc.tr('ok'),
+                  style: const TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       );
     } else {
       AppToast.show(
@@ -597,7 +642,7 @@ class _SignupScreenState extends State<SignupScreen>
                     ).animate().fadeIn(duration: 300.ms),
                     const Spacer(),
                     _LanguagePill(
-                      code: loc.language.code,
+                      language: loc.language,
                       onTap: () => LanguagePicker.show(context),
                     ).animate(delay: 200.ms).fadeIn(),
                   ],
@@ -789,9 +834,9 @@ class _SignupBackdrop extends StatelessWidget {
 
 
 class _LanguagePill extends StatelessWidget {
-  final String code;
+  final AppLanguage language;
   final VoidCallback onTap;
-  const _LanguagePill({required this.code, required this.onTap});
+  const _LanguagePill({required this.language, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -815,7 +860,7 @@ class _LanguagePill extends StatelessWidget {
                   size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Text(
-                code == 'ckb' ? 'KU' : code.toUpperCase(),
+                language.shortCode,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 12,
